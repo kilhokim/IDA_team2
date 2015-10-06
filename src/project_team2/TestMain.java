@@ -15,10 +15,16 @@ public class TestMain {
     public static void main(String[] args) {
         DataSetGenerator dataSetGen = new DataSetGenerator();
         HashMap<Integer, Feature> trUsers = dataSetGen.generateDataSet(false);
+        for (Integer i : trUsers.keySet()) {
+            System.out.println(i + ": " + trUsers.get(i));
+        }
         Instances trainingSet = dataSetGen.transformToInstances(trUsers);
         trainingSet.setClassIndex(trainingSet.numAttributes() - 1);
+        // System.out.println("TestMain.main(): trainingSet.toSummaryString()=" + trainingSet.toSummaryString());
+        System.out.println("TestMain.main(): trainingSet.toString()=" + trainingSet.toString());
 
-        Classifier cls = Classifiers.getClassifier("NaiveBayes");
+        Classifier cls = Classifiers.getClassifier("Logistic");
+        // Classifier cls = Classifiers.getClassifier("NaiveBayes");
         try {
             cls.buildClassifier(trainingSet);
         } catch (Exception e) {

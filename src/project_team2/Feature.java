@@ -7,6 +7,7 @@ import java.lang.reflect.Field;
  */
 public class Feature {
 
+    // TODO:
     public double avgX;
     public double avgY;
     public double avgZ;

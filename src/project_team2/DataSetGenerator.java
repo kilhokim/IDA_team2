@@ -132,7 +132,7 @@ public class DataSetGenerator {
             attrList.add(new Attribute(nominalField.getName(), labels));
         }
 
-        Instances insts = new Instances("example_dataSet", attrList, 0);
+        Instances insts = new Instances(Keys.DATA_SET_NAME, attrList, 0);
         for (int profileId : dataSet.keySet()) {
             double[] instValues = new double[insts.numAttributes()];
             for (int i = 0; i < instValues.length; i++) {
@@ -155,9 +155,12 @@ public class DataSetGenerator {
     //////////////////////////////////    Should be included!     //////////////////////////////////
     public HashMap<Integer, Feature> generateDataSet(boolean test) {
         HashMap<Integer, HashMap<String, ArrayList<BasicLog>>> wholeLogs = new HashMap<>();
+        System.out.println("DataSetGenerator.generateDataSet(): tableNames=" + tableNames.toString());
         for (String tableName : tableNames) {
-            HashMap<Integer, ArrayList<BasicLog>> eachUserLogs = DBReader.readLog(tableName, "", test);
+            HashMap<Integer, ArrayList<BasicLog>> eachUserLogs = DBReader.readLog(tableName, "WHERE profile_id=1", test);
+            // HashMap<Integer, ArrayList<BasicLog>> eachUserLogs = DBReader.readLog(tableName, "", test);
             for (int profileId : eachUserLogs.keySet()) {
+                System.out.println("DataSetGenerator.generateDataSet(): eachUserLogs["+profileId+"]=" + eachUserLogs.get(profileId).toString());
                 if (wholeLogs.containsKey(profileId)) {
                     wholeLogs.get(profileId).put(tableName, eachUserLogs.get(profileId));
                 } else {
@@ -197,7 +200,7 @@ public class DataSetGenerator {
                 double[] values = new double[]{avgX, avgY, avgZ};
                 feature.setValues_Accelerometer(tableName, values);
             } else if (tableName.equals("")) {
-                // insert codes..
+                // TODO: insert codes..
             }
         }
         return feature;
