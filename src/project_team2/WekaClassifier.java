@@ -4,6 +4,7 @@ import operator.ReadWriteInstances;
 import structure.weka.Algorithm;
 import structure.weka.Experiment;
 import structure.weka.Filters;
+import util.Keys;
 import weka.classifiers.Classifier;
 import weka.classifiers.Evaluation;
 import weka.core.Instances;
@@ -18,10 +19,10 @@ import java.util.Random;
 public class WekaClassifier {
     public static void main(String[] args) {
         WekaClassifier weka = new WekaClassifier();
-        String labelName = "gender";
+        String labelName = Keys.LABEL_NAME;
         Experiment exp = new Experiment(labelName, true);
-        exp.dataSetNames.add("AccelerometerSensorProbe");
-        // add dataSetNames here
+        exp.dataSetNames.add(Keys.FILE_NAME);
+        // TODO: add dataSetNames here
 
         Algorithm alg1 = new Algorithm(labelName, 0, 0);
         alg1.filterNames_forWholeSet.add("Normalize");
@@ -55,7 +56,7 @@ public class WekaClassifier {
 
         exp.algorithms.add(alg1);
 
-        // you can add more algorithms to exp here
+        // TODO: you can add more algorithms to exp here
 
         weka.runExperiment(exp, true, false, true);
     }
@@ -71,7 +72,7 @@ public class WekaClassifier {
 
     public void runAlgorithm(Experiment exp, String dataSetName,
                              Algorithm alg, boolean detailedRun, boolean consoleWrite) {
-        Instances dataSet = ReadWriteInstances.readFile("dataSet\\" + dataSetName + ".arff");
+        Instances dataSet = ReadWriteInstances.readFile(Keys.SAVE_PATH + dataSetName + "." + Keys.EXT);
         Filter filter_forWholeSet = alg.getFilter_forWholeSet();
         Instances filteredDataSet = filterDataSet(dataSet, filter_forWholeSet);
         Classifier[] clsArr = alg.getClassifiers();
