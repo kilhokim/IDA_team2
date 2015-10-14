@@ -1,5 +1,6 @@
 package project_team2;
 
+import dbConnection.DBConn;
 import dbConnection.DBReader;
 import operator.ReadWriteInstances;
 import structure.log.BasicLog;
@@ -14,19 +15,20 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 
-import util.Keys;
-
 /**
  * Created by Ethan on 2015-09-23.
  */
 public class DataSetGenerator {
 
-    String labelName = Keys.LABEL_NAME;
+    String labelName = "gender";
     ArrayList<String> tableNames;
 
-    String savePath = Keys.SAVE_PATH;
-    String fileName = Keys.FILE_NAME;
-    String extension = Keys.EXT;
+    String savePath = "dataSet\\";
+    String fileName = "AccelerometerSensorProbe";
+    String extension = "arff";
+
+    // the size of data processing at a time on memory
+    boolean batchProcess = true;
 
     // assign true value to the variables below, if you want to use the corresponding data tables.
 
@@ -90,9 +92,10 @@ public class DataSetGenerator {
                     !field.getName().equals("tableNames") &&
                     !field.getName().equals("savePath") &&
                     !field.getName().equals("fileName") &&
-                    !field.getName().equals("extension")) {
+                    !field.getName().equals("extension") &&
+                    !field.getName().equals("batchProcess")) {
                 try {
-                    if((boolean) field.get(this)) tableNames.add(field.getName());
+                    if ((boolean) field.get(this)) tableNames.add(field.getName());
                 } catch (IllegalAccessException e) {
                     e.printStackTrace();
                 }
@@ -107,6 +110,7 @@ public class DataSetGenerator {
         Instances dataSet = dataSetGen.transformToInstances(users);
         dataSet.setClassIndex(dataSet.numAttributes() - 1);
         ReadWriteInstances.writeFile(dataSet, dataSetGen.savePath, dataSetGen.fileName, dataSetGen.extension);
+        DBConn.close();
     }
 
     public Instances transformToInstances(HashMap<Integer, Feature> dataSet) {
@@ -132,7 +136,7 @@ public class DataSetGenerator {
             attrList.add(new Attribute(nominalField.getName(), labels));
         }
 
-        Instances insts = new Instances(Keys.DATA_SET_NAME, attrList, 0);
+        Instances insts = new Instances("example_dataSet", attrList, 0);
         for (int profileId : dataSet.keySet()) {
             double[] instValues = new double[insts.numAttributes()];
             for (int i = 0; i < instValues.length; i++) {
@@ -154,27 +158,36 @@ public class DataSetGenerator {
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////    Should be included!     //////////////////////////////////
     public HashMap<Integer, Feature> generateDataSet(boolean test) {
-        HashMap<Integer, HashMap<String, ArrayList<BasicLog>>> wholeLogs = new HashMap<>();
-        System.out.println("DataSetGenerator.generateDataSet(): tableNames=" + tableNames.toString());
-        for (String tableName : tableNames) {
-            HashMap<Integer, ArrayList<BasicLog>> eachUserLogs = DBReader.readLog(tableName, "WHERE profile_id=1", test);
-            // HashMap<Integer, ArrayList<BasicLog>> eachUserLogs = DBReader.readLog(tableName, "", test);
-            for (int profileId : eachUserLogs.keySet()) {
-                System.out.println("DataSetGenerator.generateDataSet(): eachUserLogs["+profileId+"]=" + eachUserLogs.get(profileId).toString());
-                if (wholeLogs.containsKey(profileId)) {
-                    wholeLogs.get(profileId).put(tableName, eachUserLogs.get(profileId));
-                } else {
-                    HashMap<String, ArrayList<BasicLog>> tempLogs = new HashMap<String, ArrayList<BasicLog>>();
-                    tempLogs.put(tableName, eachUserLogs.get(profileId));
-                    wholeLogs.put(profileId, tempLogs);
+        HashMap<Integer, Feature> users = new HashMap<Integer, Feature>();
+        if (batchProcess) {
+            ArrayList<Integer> profileIds = DBReader.readProfileIds(test);
+            for (int profileId : profileIds) {
+                String tempUserLabel = DBReader.readLabel(labelName, profileId, test);
+                for (String tableName : tableNames) {
+                    Feature tempFeature = generateFeature_batchProcess(tableName, profileId, tempUserLabel, test);
+                    users.put(profileId, tempFeature);
                 }
             }
+        } else {
+            HashMap<Integer, HashMap<String, ArrayList<BasicLog>>> wholeLogs = new HashMap<>();
+            for (String tableName : tableNames) {
+                HashMap<Integer, ArrayList<BasicLog>> eachUserLogs = DBReader.readLog(tableName, "", test);
+                for (int profileId : eachUserLogs.keySet()) {
+                    if (wholeLogs.containsKey(profileId)) {
+                        wholeLogs.get(profileId).put(tableName, eachUserLogs.get(profileId));
+                    } else {
+                        HashMap<String, ArrayList<BasicLog>> tempLogs = new HashMap<String, ArrayList<BasicLog>>();
+                        tempLogs.put(tableName, eachUserLogs.get(profileId));
+                        wholeLogs.put(profileId, tempLogs);
+                    }
+                }
+            }
+            for (int profileId : wholeLogs.keySet()) {
+                String tempUserLabel = DBReader.readLabel(labelName, profileId, test);
+                users.put(profileId, generateFeature(wholeLogs.get(profileId), tempUserLabel));
+            }
         }
-        HashMap<Integer, Feature> users = new HashMap<Integer, Feature>();
-        for (int profileId : wholeLogs.keySet()) {
-            String tempUserLabel = DBReader.readLabel(labelName, profileId, test);
-            users.put(profileId, generateFeature(wholeLogs.get(profileId), tempUserLabel));
-        }
+        DBConn.close();
         return users;
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -200,9 +213,43 @@ public class DataSetGenerator {
                 double[] values = new double[]{avgX, avgY, avgZ};
                 feature.setValues_Accelerometer(tableName, values);
             } else if (tableName.equals("")) {
-                // TODO: insert codes..
+                // insert codes..
             }
         }
         return feature;
     }
+
+    public Feature generateFeature_batchProcess(String tableName, int profileId, String label, boolean test) {
+        Feature feature = new Feature();
+        feature.setLabel(label);
+        ArrayList<Integer> expIds = DBReader.readExpIds(tableName, profileId, test);
+
+        if (tableName.equals("AccelerometerSensorProbe")) {
+            double avgX = 0;
+            double avgY = 0;
+            double avgZ = 0;
+            int logSize = 0;
+            for (int j = 0; j < expIds.size(); j++) {
+                int expId = expIds.get(j);
+                ArrayList<BasicLog> tempChunkLogs = DBReader.readLog_customized(tableName,
+                        "where profile_id = " + profileId + " and expId = " + expId, test);
+                for (int i = 0; i < tempChunkLogs.size(); i++) {
+                    AccelerometerLog log = (AccelerometerLog) tempChunkLogs.get(i);
+                    avgX += log.x;
+                    avgY += log.y;
+                    avgZ += log.z;
+                }
+                logSize += tempChunkLogs.size();
+            }
+            avgX /= logSize;
+            avgY /= logSize;
+            avgZ /= logSize;
+            double[] values = new double[]{avgX, avgY, avgZ};
+            feature.setValues_Accelerometer(tableName, values);
+        } else if (tableName.equals("")) {
+            // insert codes..
+        }
+        return feature;
+    }
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 }
