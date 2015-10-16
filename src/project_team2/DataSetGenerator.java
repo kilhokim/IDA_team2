@@ -9,6 +9,7 @@ import structure.log.deviceInteraction.AudioMediaLog;
 import structure.log.deviceInteraction.ImageMediaLog;
 import structure.log.deviceInteraction.VideoMediaLog;
 import structure.log.motion.AccelerometerLog;
+import structure.log.social.SmsLog;
 import weka.core.Attribute;
 import weka.core.DenseInstance;
 import weka.core.Instances;
@@ -58,7 +59,7 @@ public class DataSetGenerator {
 
     // social
     private boolean CallLogProbe = false;
-    private boolean SmsProbe = false;
+    private boolean SmsProbe = true;
     private boolean ContactProbe = false;
 
     // device interaction
@@ -66,7 +67,7 @@ public class DataSetGenerator {
     private boolean BrowserSearchesProbe = false;
     private boolean ImageMediaProbe = false;
     private boolean VideoMediaProbe = false;
-    private boolean AudioMediaProbe = true;
+    private boolean AudioMediaProbe = false;
     private boolean RunningApplicationsProbe = false;
     private boolean ApplicationsProbe = false;
     private boolean ScreenProbe = false;
@@ -160,6 +161,8 @@ public class DataSetGenerator {
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////    Should be included!     //////////////////////////////////
     public HashMap<Integer, Feature> generateDataSet(boolean test) {
+        Map<String, List<Integer>> nullFeatureProfileIdMap =
+          new HashMap<String, List<Integer>>();
         HashMap<Integer, Feature> users = new HashMap<Integer, Feature>();
         if (batchProcess) {
             ArrayList<Integer> profileIds = DBReader.readProfileIds(test);
@@ -167,9 +170,22 @@ public class DataSetGenerator {
                 String tempUserLabel = DBReader.readLabel(labelName, profileId, test);
                 for (String tableName : tableNames) {
                     Feature tempFeature = generateFeature_batchProcess(tableName, profileId, tempUserLabel, test);
-                    users.put(profileId, tempFeature);
+                    // IMPORTANT: Handle exceptions
+                    if (tempFeature != null) {
+                        users.put(profileId, tempFeature);
+                    } else {
+                        if (!nullFeatureProfileIdMap.containsKey(tableName)) {
+                            nullFeatureProfileIdMap.put(tableName,
+                              new ArrayList<Integer>());
+                        }
+                        nullFeatureProfileIdMap.get(tableName).add(profileId);
+                    }
                 }
             }
+
+            // IMPORTANT: Fill missing features for nullProfileIds
+            users = fillMissingFeatures(users, nullFeatureProfileIdMap, profileIds, test);
+
         } else {
             HashMap<Integer, HashMap<String, ArrayList<BasicLog>>> wholeLogs = new HashMap<>();
             for (String tableName : tableNames) {
@@ -336,7 +352,7 @@ public class DataSetGenerator {
         }
         /**
          @author Kilho Kim
-         @description ImageMediaProbe features
+         @description VideoMediaProbe features
          */
         else if (tableName.equals("VideoMediaProbe")) {
             String currBucketDisplayName;
@@ -402,23 +418,178 @@ public class DataSetGenerator {
             printFeatureValue(values);
             feature.setValues_AudioMedia(tableName, values);
         }
+        /**
+         @author Kilho Kim
+         @description SmsProbe features
+         */
+        else if (tableName.equals("SmsProbe")) {
+            double[] values = new double[3];
+            double numSmss = 0;
+            Map<Integer, Integer> addressSmsMap = new HashMap<Integer, Integer>();
+            double top3AddressRatio = 0;
+            double avgSmsInterval = 0;
+            double sumSmsInterval = 0;
+            int currAddress;
+            double prevTimeStamp = -1.0;
+            double currTimeStamp;
+
+            ArrayList<BasicLog> tempChunkLogs = DBReader.readLog_customized(tableName,
+                    "where profile_id = " + profileId + " order by time_stamp asc", test);
+//                        "where profile_id = " + profileId + " and expId = " + expId + " order by time_stamp asc", test);
+
+            // IMPORTANT: Escape rule for exception
+            // FIXME:
+            if (tempChunkLogs.size() < 10) {
+                System.err.println("Exception: profileId=" + profileId +
+                                   ", tableName=" + tableName);
+                return null;
+            }
+
+            for (int i = 0; i < tempChunkLogs.size(); i++) {
+                SmsLog log = (SmsLog) tempChunkLogs.get(i);
+                numSmss += 1;
+                currAddress = log.address;
+                if (addressSmsMap.containsKey(currAddress)) {
+                    addressSmsMap.put(currAddress,
+                            addressSmsMap.get(currAddress)+1);
+                } else {
+                    addressSmsMap.put(currAddress, 1);
+                }
+
+                currTimeStamp = log.timeStamp;
+                if (prevTimeStamp > 0) {
+                    sumSmsInterval +=
+                      Math.abs(currTimeStamp - prevTimeStamp);
+                }
+                prevTimeStamp = currTimeStamp;
+            }
+
+            List<Integer> numSmsPerAddresses =
+              new ArrayList<Integer>(addressSmsMap.values());
+            Collections.sort(numSmsPerAddresses);
+            Collections.reverse(numSmsPerAddresses);
+            // assert (numSmsPerAddresses.size() >= 3);
+            double top3AddressSum = 0;
+            double totalAddressSum = 0;
+            for (int i = 0; i < 3; i++) {
+                top3AddressSum += numSmsPerAddresses.get(i);
+            }
+            for (int i = 0; i < numSmsPerAddresses.size(); i++) {
+                totalAddressSum += numSmsPerAddresses.get(i);
+            }
+            top3AddressRatio = top3AddressSum / totalAddressSum;
+            avgSmsInterval = sumSmsInterval / (numSmss-1);
+
+            values[0] = Math.abs(numSmss);
+            values[1] = Math.abs(top3AddressRatio);
+            values[2] = Math.abs(avgSmsInterval);
+            printFeatureValue(values);
+            feature.setValues_Sms(tableName, values);
+        }
+
 
         return feature;
     }
-    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////////////////////////////
     private void printFeatureValue(int[] values) {
-        System.out.println("");
         for (int i = 0; i < values.length; i++) {
             System.out.print(values[i] + " ");
             if (i == values.length -1) System.out.println("");
         }
+        System.out.println("");
     }
 
     private void printFeatureValue(double[] values) {
-        System.out.println("");
         for (int i = 0; i < values.length; i++) {
             System.out.print(values[i] + " ");
             if (i == values.length -1) System.out.println("");
         }
+        System.out.println("");
+    }
+
+    private HashMap<Integer, Feature> fillMissingFeatures(
+            HashMap<Integer, Feature> users,
+            Map<String, List<Integer>> nullFeatureProfileIdMap,
+            ArrayList<Integer> profileIds,
+            boolean test) {
+
+        // IMPORTANT: Put values into null feature for some profileIds
+        //            an avg value for the other profileId's feature values
+        for (String tableName : nullFeatureProfileIdMap.keySet()) {
+            List<Integer> nullProfileIds =
+                    nullFeatureProfileIdMap.get(tableName);
+
+            double avgValues[];
+            switch (tableName) {
+                case "SmsProbe":
+                    avgValues = new double[3];
+                    break;
+//                case "CallLogProbe":
+//                    avgValues = new double[6];
+//                    break;
+                default:
+                    avgValues = new double[3];
+                    break;
+            }
+
+            int numProfileIds = 0;
+            // Compute the average values for current feature
+            for (int i = 0; i < profileIds.size(); i++) {
+                int currProfileId = profileIds.get(i);
+                if (!nullProfileIds.contains(currProfileId)) {
+                    numProfileIds += 1;
+                    Feature currFeature = users.get(currProfileId);
+                    switch (tableName) {
+                        case "SmsProbe":
+                            double[] values =
+                              {currFeature.numSmss,
+                               currFeature.top3AddressRatio,
+                               currFeature.avgSmsInterval};
+                            for (int j = 0; j < values.length; j++) {
+                                avgValues[j] += values[j];
+                            }
+                            break;
+//                        case "CallLogProbe":
+//                            double[] values =
+//                              {currFeature.numSmss,
+//                               currFeature.top3AddressRatio,
+//                               currFeature.avgSmsInterval};
+//                            for (int j = 0; j < values.length; j++) {
+//                                avgValues[j] += values[j];
+//                            }
+//                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+            for (int j = 0; j < avgValues.length; j++) {
+                avgValues[j] /= numProfileIds;
+            }
+
+            // Put the average value for missing features
+            for (int i = 0; i < nullProfileIds.size(); i++) {
+                int nullProfileId = nullProfileIds.get(i);
+                String nullProfileIdUserLabel =
+                  DBReader.readLabel(labelName, nullProfileId, test);
+                Feature avgFeature = new Feature();
+                avgFeature.setLabel(nullProfileIdUserLabel);
+                printFeatureValue(avgValues);
+                switch (tableName) {
+                    case "SmsProbe":
+                        avgFeature.setValues_Sms(tableName, avgValues);
+                        break;
+//                    case "CallLogProbe":
+//                        break;
+                    default:
+                        break;
+                }
+                users.put(nullProfileId, avgFeature);
+                // users.put(profileId, tempFeature);
+            }
+        }
+
+        return users;
     }
 }

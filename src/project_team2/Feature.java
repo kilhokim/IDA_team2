@@ -81,6 +81,14 @@ public class Feature {
     public double audioMediaSize;
     public double duration;
 
+    /**
+     * @author Kilho Kim
+     * @description SmsProbe features
+     */
+    public double numSmss;
+    public double top3AddressRatio;
+    public double avgSmsInterval;
+
 
     public String label;
 
@@ -221,7 +229,18 @@ public class Feature {
     }
   }
 
-    public void setLabel(String label){
-        this.label = label;
+  public void setValues_Sms(String dataType, double[] values) {
+    if (dataType.equals("SmsProbe")) {
+      assert (values.length == 3);
+      numSmss = values[0];
+      top3AddressRatio = values[1];
+      avgSmsInterval = values[2];
     }
+  }
+
+
+
+  public void setLabel(String label){
+      this.label = label;
+  }
 }
