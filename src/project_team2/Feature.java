@@ -79,7 +79,7 @@ public class Feature {
      */
     public double numAudios;
     public double audioMediaSize;
-    public double duration;
+    public double audioDuration;
 
     /**
      * @author Kilho Kim
@@ -89,13 +89,27 @@ public class Feature {
     public double top3AddressRatio;
     public double avgSmsInterval;
 
+    /**
+     * @author Kilho Kim
+     * @description CallLogProbe features
+     */
+    public double numCallLogs;
+    public double callDuration;
+    public double top3NumberRatio;
+    public double unknownCallRatio;
+    public double callOutRatio;
+    public double avgCallInterval;
+
 
     public String label;
 
     String[] numericAtts = {
                "numBooksReference","numBusiness","numComics","numCommuncation","numEducation","numEntertainment","numFinanace","numHealthFitness","numLibrariesDemo","numLifestyle","numLiveWallpaper","numMediaVideo","numMedical","numMusicAudio","numNewsMagazines","numPersonalization","numPhotography","numProductivity","numShopping","numSocial","numSports","numTools","numTransportation","numTravelLocal","numWeather","numWidgets","numAction","numAdventure","numArcade","numBoard","numCard","numCasino","numCasual","numEducational","numMusic","numPuzzle","numRacing","numRolePlaying","numSimulation",/*"numSports",*/"numStrategy","numTrivia","numWord","numAges5Under","numAges6_8","numAges9Up","numPopularCharacters","numActionAdventure","numBrainGames","numCreativity",/*"numFamilyEducation",*/"numMusicVideo","numPretendPlay",
             "numPhotosCamera", "numPhotosDownload", "numPhotosScreenshots", "imageMediaSize",
-            "numVideosCamera", "numVideosKakaoTalk", "videoMediaSize", "videoDuration"
+            "numVideosCamera", "numVideosKakaoTalk", "videoMediaSize", "videoDuration",
+            "numAudios", "audioMediaSize", "audioDuration",
+            "numSmss", "top3AddressRatio", "avgSmsInterval",
+            "numCallLogs", "callDuration", "top3NumberRatio", "unknownCallRatio", "callOutRatio", "avgCallInterval"
     };
 
     String[] nominalAtts = {"label"};   // label must be the last one!
@@ -225,7 +239,7 @@ public class Feature {
       assert (values.length == 3);
       numAudios = values[0];
       audioMediaSize = values[1];
-      duration = values[2];
+      audioDuration = values[2];
     }
   }
 
@@ -238,6 +252,17 @@ public class Feature {
     }
   }
 
+  public void setValues_CallLog(String dataType, double[] values) {
+    if (dataType.equals("CallLogProbe")) {
+      assert (values.length == 6);
+      numCallLogs = values[0];
+      callDuration = values[1];
+      top3NumberRatio = values[2];
+      unknownCallRatio = values[3];
+      callOutRatio = values[4];
+      avgCallInterval = values[5];
+    }
+  }
 
 
   public void setLabel(String label){
