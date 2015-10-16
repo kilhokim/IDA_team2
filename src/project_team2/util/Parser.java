@@ -1,11 +1,15 @@
 package project_team2.util;
 
+import dbConnection.DBConn;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -40,8 +44,28 @@ public class Parser {
     return result;
   }
 
+  public static boolean updateCategory(String packageName, String cat)
+          throws SQLException {
+    DBConn.connect(false);
+    Statement stmt = DBConn.con.createStatement();
+
+    int result = stmt.executeUpdate("UPDATE ApplicationsProbe SET appCategory='" + cat + "' WHERE packageName='" + packageName + "'");
+
+    // System.out.println("Update " + packageName + " = " + result);
+    stmt.close();
+    DBConn.close();
+    return (result > 0);
+  }
+
   public static String parseCategory(String url, String packageName,
-                                   String cssQuery) throws IOException {
+                                   String cssQuery) throws IOException, SQLException {
+
+    // Search DB for any existing category for given packageName
+    ResultSet rs = DBConn.execQuery("SELECT * FROM ApplicationsProbe WHERE packageName='" + packageName + "' GROUP BY packageName", false);
+    rs.first();
+    String catFromDB = rs.getString("appCategory");
+
+    if (!rs.wasNull()) return catFromDB;
 
     Document doc;
 
@@ -55,7 +79,7 @@ public class Parser {
             // .userAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:41.0) Gecko/20100101 Firefox/41.0").get();
 
     // get page title
-    String title = doc.title();
+    // String title = doc.title();
     // System.out.println("title : " + title);
 
     // get all links
@@ -66,6 +90,9 @@ public class Parser {
       // System.out.println("\nlink : " + category.attr("href"));
       String cat = category.text().replaceAll("\\s", "");
       System.out.print(cat + " ");
+
+      // Update DB with the found category
+      updateCategory(packageName, cat);
       return cat;
     }
 
@@ -88,6 +115,8 @@ public class Parser {
       System.out.println(cat2 + "=" + categoryMap.get(cat2));
 
     } catch (IOException e) {
+      e.printStackTrace();
+    } catch (SQLException e) {
       e.printStackTrace();
     }
 

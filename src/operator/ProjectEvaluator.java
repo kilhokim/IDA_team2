@@ -81,6 +81,7 @@ public class ProjectEvaluator {
         int energyCost = computeEnergyCost();
         double accuracy = computeAccuracy(testSet, predictedSet);
         System.out.println("test result");
+        System.out.println("teUsers.size()=" + teUsers.size());
         System.out.println("time cost : " + timeCost);
         System.out.println("privacy cost : " + privacyCost);
         System.out.println("energy cost : " + energyCost);

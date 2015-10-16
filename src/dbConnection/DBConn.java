@@ -35,7 +35,7 @@ public class DBConn {
         connect(test);
         try {
             Statement stmt = con.createStatement();
-            System.out.println("DBConn.execQuery(): sql=" + sql);
+            // System.out.println("DBConn.execQuery(): sql=" + sql);
             rs = stmt.executeQuery(sql);
         } catch (SQLException e) {
             e.printStackTrace();
