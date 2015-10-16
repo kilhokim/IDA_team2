@@ -3,6 +3,7 @@ package project_team2;
 import dbConnection.DBConn;
 import dbConnection.DBReader;
 import operator.ReadWriteInstances;
+import project_team2.util.Parser;
 import structure.log.BasicLog;
 import structure.log.deviceInteraction.ApplicationsLog;
 import structure.log.deviceInteraction.AudioMediaLog;
@@ -17,6 +18,7 @@ import weka.core.Instances;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.sql.SQLException;
 import java.util.*;
 
 /**
@@ -59,7 +61,7 @@ public class DataSetGenerator {
     private boolean AudioFeaturesProbe = false;
 
     // social
-    private boolean CallLogProbe = true;
+    private boolean CallLogProbe = false;
     private boolean SmsProbe = false;
     private boolean ContactProbe = false;
 
@@ -70,7 +72,7 @@ public class DataSetGenerator {
     private boolean VideoMediaProbe = false;
     private boolean AudioMediaProbe = false;
     private boolean RunningApplicationsProbe = false;
-    private boolean ApplicationsProbe = false;
+    private boolean ApplicationsProbe = true;
     private boolean ScreenProbe = false;
     private boolean AccountsProbe = false;
     private boolean ProcessStatisticsProbe = false;
@@ -287,10 +289,8 @@ public class DataSetGenerator {
                           ApplicationsLog log =
                             (ApplicationsLog) tempChunkLogs.get(i);
 
-                          currCategory =
-                            project_team2.util.Parser
-                              .parseCategory(GOOGLE_PLAY_URL,
-                                log.packageName, CATEGORY_CSS_QUERY);
+                          currCategory = Parser.parseCategory(GOOGLE_PLAY_URL,
+                                  log.packageName, CATEGORY_CSS_QUERY);
                           int categoryIdx =
                             Feature.categoryMap.get(currCategory);
                           values[categoryIdx] += 1;
@@ -300,6 +300,8 @@ public class DataSetGenerator {
                         } catch (NullPointerException e) {
                             System.err.print("Not Found");
                             continue;
+                        } catch (SQLException e) {
+                            System.err.println("SQLException: " + e);
                         }
                     }
                 }
