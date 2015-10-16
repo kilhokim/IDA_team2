@@ -9,16 +9,16 @@ import java.util.Map;
  */
 public class Feature {
 
-    // TODO:
-    public double avgX;
-    public double avgY;
-    public double avgZ;
+//    // TODO:
+//    public double avgX;
+//    public double avgY;
+//    public double avgZ;
 
     /**
      * @author Kilho Kim
      * @description ApplicationsProbe features
      */
-    public int numBooksReference,numBusiness,numComics,numCommuncation,
+    public double numBooksReference,numBusiness,numComics,numCommuncation,
                numEducation,numEntertainment,numFinanace,numHealthFitness,
                numLibrariesDemo,numLifestyle,numLiveWallpaper,numMediaVideo,
                numMedical,numMusicAudio,numNewsMagazines,numPersonalization,
@@ -54,21 +54,40 @@ public class Feature {
         }
     }
 
-  /**
-   * @author Kilho Kim
-   * @description ImageMediaProbe features
-   */
-    // int numOfPhotosBySelf;
-    int numPhotosFromCamera;
-    int numPhotosFrom
-    int imageMediaSize;
+    /**
+     * @author Kilho Kim
+     * @description ImageMediaProbe features
+     */
+    public double numPhotosCamera;
+    public double numPhotosKakaoTalk;
+    public double numPhotosDownload;
+    public double numPhotosScreenshots;
+    public double imageMediaSize;
+
+    /**
+     * @author Kilho Kim
+     * @description VideoMediaProbe features
+     */
+    public double numVideosCamera;
+    public double numVideosKakaoTalk;
+    public double videoMediaSize;
+    public double videoDuration;
+
+    /**
+     * @author Kilho Kim
+     * @description AudioMediaProbe features
+     */
+    public double numAudios;
+    public double audioMediaSize;
+    public double duration;
+
 
     public String label;
 
     String[] numericAtts = {
-            "avgX", "avgY", "avgZ",
                "numBooksReference","numBusiness","numComics","numCommuncation","numEducation","numEntertainment","numFinanace","numHealthFitness","numLibrariesDemo","numLifestyle","numLiveWallpaper","numMediaVideo","numMedical","numMusicAudio","numNewsMagazines","numPersonalization","numPhotography","numProductivity","numShopping","numSocial","numSports","numTools","numTransportation","numTravelLocal","numWeather","numWidgets","numAction","numAdventure","numArcade","numBoard","numCard","numCasino","numCasual","numEducational","numMusic","numPuzzle","numRacing","numRolePlaying","numSimulation",/*"numSports",*/"numStrategy","numTrivia","numWord","numAges5Under","numAges6_8","numAges9Up","numPopularCharacters","numActionAdventure","numBrainGames","numCreativity",/*"numFamilyEducation",*/"numMusicVideo","numPretendPlay",
-            "numOfPhotosBySelf", "imageMediaSize"
+            "numPhotosCamera", "numPhotosDownload", "numPhotosScreenshots", "imageMediaSize",
+            "numVideosCamera", "numVideosKakaoTalk", "videoMediaSize", "videoDuration"
     };
 
     String[] nominalAtts = {"label"};   // label must be the last one!
@@ -101,9 +120,9 @@ public class Feature {
 
     public void setValues_Accelerometer(String dataType, double[] values){
         if(dataType.equals("AccelerometerSensorProbe")){
-            avgX = values[0];
-            avgY = values[1];
-            avgZ = values[2];
+//            avgX = values[0];
+//            avgY = values[1];
+//            avgZ = values[2];
         }
     }
 
@@ -174,9 +193,31 @@ public class Feature {
 
   public void setValues_ImageMedia(String dataType, int[] values){
     if (dataType.equals("ImageMediaProbe")) {
-      assert (values.length == 2);
-      // numOfPhotosBySelf = values[0];
-      // imageMediaSize = values[1];
+      assert (values.length == 5);
+      numPhotosCamera = values[0];
+      numPhotosKakaoTalk = values[1];
+      numPhotosDownload = values[2];
+      numPhotosScreenshots = values[3];
+      imageMediaSize = values[4];
+    }
+  }
+
+  public void setValues_VideoMedia(String dataType, int[] values) {
+    if (dataType.equals("VideoMediaProbe")) {
+      assert (values.length == 4);
+      numVideosCamera = values[0];
+      numVideosKakaoTalk = values[1];
+      videoMediaSize = values[2];
+      videoDuration = values[3];
+    }
+  }
+
+  public void setValues_AudioMedia(String dataType, int[] values) {
+    if (dataType.equals("AudioMediaProbe")) {
+      assert (values.length == 3);
+      numAudios = values[0];
+      audioMediaSize = values[1];
+      duration = values[2];
     }
   }
 

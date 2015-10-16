@@ -5,7 +5,9 @@ import dbConnection.DBReader;
 import operator.ReadWriteInstances;
 import structure.log.BasicLog;
 import structure.log.deviceInteraction.ApplicationsLog;
+import structure.log.deviceInteraction.AudioMediaLog;
 import structure.log.deviceInteraction.ImageMediaLog;
+import structure.log.deviceInteraction.VideoMediaLog;
 import structure.log.motion.AccelerometerLog;
 import weka.core.Attribute;
 import weka.core.DenseInstance;
@@ -62,9 +64,9 @@ public class DataSetGenerator {
     // device interaction
     private boolean BrowserBookmarksProbe = false;
     private boolean BrowserSearchesProbe = false;
-    private boolean ImageMediaProbe = true;
+    private boolean ImageMediaProbe = false;
     private boolean VideoMediaProbe = false;
-    private boolean AudioMediaProbe = false;
+    private boolean AudioMediaProbe = true;
     private boolean RunningApplicationsProbe = false;
     private boolean ApplicationsProbe = false;
     private boolean ScreenProbe = false;
@@ -252,7 +254,6 @@ public class DataSetGenerator {
          @description ApplicationsProbe features
          */
         else if (tableName.equals("ApplicationsProbe")) {
-            int logSize = 0;
             String currCategory;
             int[] values = new int[Feature.categoryNames.length];
 
@@ -284,13 +285,8 @@ public class DataSetGenerator {
                             continue;
                         }
                     }
-                    logSize += tempChunkLogs.size();
                 }
-                System.out.println("");
-                for (int i = 0; i < values.length; i++) {
-                   System.out.print(values[i] + " ");
-                   if (i == values.length -1) System.out.println("");
-                }
+                printFeatureValue(values);
                 feature.setValues_Applications(tableName, values);
         }
         /**
@@ -298,8 +294,9 @@ public class DataSetGenerator {
          @description ImageMediaProbe features
          */
         else if (tableName.equals("ImageMediaProbe")) {
-            int logSize = 0;
-            // int[] values = new int[Feature.categoryNames.length];
+            String currBucketDisplayName;
+            int[] values = new int[5];
+            int imageMediaSize = 0;
 
             for (int j = 0; j < expIds.size(); j++) {
                 int expId = expIds.get(j);
@@ -307,25 +304,121 @@ public class DataSetGenerator {
                         "where profile_id = " + profileId + " and expId = " + expId, test);
                 for (int i = 0; i < tempChunkLogs.size(); i++) {
                     ImageMediaLog log = (ImageMediaLog) tempChunkLogs.get(i);
-
-                    log.bucketDisplayName
-
-
-
-
+                    currBucketDisplayName = log.bucketDisplayName;
+                    imageMediaSize += log.size;
+                    switch (currBucketDisplayName) {
+                        case "Camera":
+                            values[0] += 1;
+                            break;
+                        case "100ANDRO":
+                            values[0] += 1;
+                            break;
+                        case "CandyCam":
+                            values[0] += 1;
+                            break;
+                        case "KakaoTalk":
+                            values[1] += 1;
+                            break;
+                        case "Download":
+                            values[2] += 1;
+                            break;
+                        case "Screenshots":
+                            values[3] += 1;
+                            break;
+                        default:
+                            break;
+                    }
                 }
-                logSize += tempChunkLogs.size();
             }
-            avgX /= logSize;
-            avgY /= logSize;
-            avgZ /= logSize;
-            double[] values = new double[]{avgX, avgY, avgZ};
-            feature.setValues_Accelerometer(tableName, values);
-
-
+            values[3] = Math.abs(imageMediaSize);
+            printFeatureValue(values);
+            feature.setValues_ImageMedia(tableName, values);
         }
-        // else if
+        /**
+         @author Kilho Kim
+         @description ImageMediaProbe features
+         */
+        else if (tableName.equals("VideoMediaProbe")) {
+            String currBucketDisplayName;
+            int[] values = new int[4];
+            int videoMediaSize = 0;
+            int duration = 0;
+
+            for (int j = 0; j < expIds.size(); j++) {
+                int expId = expIds.get(j);
+                ArrayList<BasicLog> tempChunkLogs = DBReader.readLog_customized(tableName,
+                        "where profile_id = " + profileId + " and expId = " + expId, test);
+                for (int i = 0; i < tempChunkLogs.size(); i++) {
+                    VideoMediaLog log = (VideoMediaLog) tempChunkLogs.get(i);
+                    currBucketDisplayName = log.bucketDisplayName;
+                    videoMediaSize += log.size;
+                    duration += log.duration;
+                    switch (currBucketDisplayName) {
+                        case "Camera":
+                            values[0] += 1;
+                            break;
+                        case "100ANDRO":
+                            values[0] += 1;
+                            break;
+                        case "KakaoTalkDownload":
+                            values[1] += 1;
+                            break;
+                        case "video":
+                            values[1] += 1;
+                        default:
+                            break;
+                    }
+                }
+            }
+            values[2] = Math.abs(videoMediaSize);
+            values[3] = Math.abs(duration);
+            printFeatureValue(values);
+            feature.setValues_VideoMedia(tableName, values);
+        }
+        /**
+         @author Kilho Kim
+         @description AudioMediaProbe features
+         */
+        else if (tableName.equals("AudioMediaProbe")) {
+            int[] values = new int[3];
+            int numAudios = 0;
+            int audioMediaSize = 0;
+            int duration = 0;
+
+            for (int j = 0; j < expIds.size(); j++) {
+                int expId = expIds.get(j);
+                ArrayList<BasicLog> tempChunkLogs = DBReader.readLog_customized(tableName,
+                        "where profile_id = " + profileId + " and expId = " + expId, test);
+                for (int i = 0; i < tempChunkLogs.size(); i++) {
+                    AudioMediaLog log = (AudioMediaLog) tempChunkLogs.get(i);
+                    numAudios += 1;
+                    audioMediaSize += log.size;
+                    duration += log.duration;
+                }
+            }
+            values[0] = Math.abs(numAudios);
+            values[1] = Math.abs(audioMediaSize);
+            values[2] = Math.abs(duration);
+            printFeatureValue(values);
+            feature.setValues_AudioMedia(tableName, values);
+        }
+
         return feature;
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////
+    private void printFeatureValue(int[] values) {
+        System.out.println("");
+        for (int i = 0; i < values.length; i++) {
+            System.out.print(values[i] + " ");
+            if (i == values.length -1) System.out.println("");
+        }
+    }
+
+    private void printFeatureValue(double[] values) {
+        System.out.println("");
+        for (int i = 0; i < values.length; i++) {
+            System.out.print(values[i] + " ");
+            if (i == values.length -1) System.out.println("");
+        }
+    }
 }
