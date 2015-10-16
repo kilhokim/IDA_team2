@@ -9,6 +9,7 @@ import structure.log.deviceInteraction.AudioMediaLog;
 import structure.log.deviceInteraction.ImageMediaLog;
 import structure.log.deviceInteraction.VideoMediaLog;
 import structure.log.motion.AccelerometerLog;
+import structure.log.social.CallLog;
 import structure.log.social.SmsLog;
 import weka.core.Attribute;
 import weka.core.DenseInstance;
@@ -58,8 +59,8 @@ public class DataSetGenerator {
     private boolean AudioFeaturesProbe = false;
 
     // social
-    private boolean CallLogProbe = false;
-    private boolean SmsProbe = true;
+    private boolean CallLogProbe = true;
+    private boolean SmsProbe = false;
     private boolean ContactProbe = false;
 
     // device interaction
@@ -486,6 +487,91 @@ public class DataSetGenerator {
             printFeatureValue(values);
             feature.setValues_Sms(tableName, values);
         }
+        /**
+         @author Kilho Kim
+         @description CallLog features
+         */
+        else if (tableName.equals("CallLogProbe")) {
+            double[] values = new double[6];
+            double numCallLogs = 0;
+            Map<Integer, Integer> numberCallLogMap =
+              new HashMap<Integer, Integer>();
+            double top3NumberRatio = 0;
+            double avgCallInterval = 0;
+            double sumCallInterval = 0;
+            int currNumber;
+            double prevTimeStamp = -1.0;
+            double currTimeStamp;
+            double callDuration = 0;
+            double numUnknownCall = 0;
+            double numCallOut = 0;
+
+            ArrayList<BasicLog> tempChunkLogs = DBReader.readLog_customized(tableName,
+                    "where profile_id = " + profileId + " order by time_stamp asc", test);
+//                        "where profile_id = " + profileId + " and expId = " + expId + " order by time_stamp asc", test);
+
+            // IMPORTANT: Escape rule for exception
+            // FIXME:
+            if (tempChunkLogs.size() < 10) {
+                System.err.println("Exception: profileId=" + profileId +
+                        ", tableName=" + tableName);
+                return null;
+            }
+
+            for (int i = 0; i < tempChunkLogs.size(); i++) {
+                CallLog log = (CallLog) tempChunkLogs.get(i);
+                numCallLogs += 1;
+                callDuration += log.duration;
+                if (log.numberType == 0) {
+                    numUnknownCall += 1;
+                }
+                if (log.type == 1) {
+                    numCallOut += 1;
+                }
+                currNumber = log.number;
+                if (numberCallLogMap.containsKey(currNumber)) {
+                    numberCallLogMap.put(currNumber,
+                            numberCallLogMap.get(currNumber)+1);
+                } else {
+                    numberCallLogMap.put(currNumber, 1);
+                }
+
+                currTimeStamp = log.timeStamp;
+                if (prevTimeStamp > 0) {
+                    sumCallInterval +=
+                            Math.abs(currTimeStamp - prevTimeStamp);
+                }
+                prevTimeStamp = currTimeStamp;
+            }
+
+            List<Integer> numCallPerNumbers =
+                    new ArrayList<Integer>(numberCallLogMap.values());
+            Collections.sort(numCallPerNumbers);
+            Collections.reverse(numCallPerNumbers);
+            // assert (numSmsPerAddresses.size() >= 3);
+            double top3NumberSum = 0;
+            double totalNumberSum = 0;
+            for (int i = 0; i < 3; i++) {
+                top3NumberSum += numCallPerNumbers.get(i);
+            }
+            for (int i = 0; i < numCallPerNumbers.size(); i++) {
+                totalNumberSum += numCallPerNumbers.get(i);
+            }
+            top3NumberRatio = top3NumberSum / totalNumberSum;
+            avgCallInterval = sumCallInterval / (numCallLogs-1);
+
+            double unknownCallRatio = numUnknownCall / numCallLogs;
+            double callOutRatio = numCallOut / numCallLogs;
+
+            values[0] = Math.abs(numCallLogs);
+            values[1] = Math.abs(callDuration);
+            values[2] = Math.abs(top3NumberRatio);
+            values[3] = Math.abs(unknownCallRatio);
+            values[4] = Math.abs(callOutRatio);
+            values[5] = Math.abs(avgCallInterval);
+            printFeatureValue(values);
+            feature.setValues_CallLog(tableName, values);
+        }
 
 
         return feature;
@@ -525,9 +611,9 @@ public class DataSetGenerator {
                 case "SmsProbe":
                     avgValues = new double[3];
                     break;
-//                case "CallLogProbe":
-//                    avgValues = new double[6];
-//                    break;
+                case "CallLogProbe":
+                    avgValues = new double[6];
+                    break;
                 default:
                     avgValues = new double[3];
                     break;
@@ -542,23 +628,28 @@ public class DataSetGenerator {
                     Feature currFeature = users.get(currProfileId);
                     switch (tableName) {
                         case "SmsProbe":
-                            double[] values =
-                              {currFeature.numSmss,
-                               currFeature.top3AddressRatio,
-                               currFeature.avgSmsInterval};
-                            for (int j = 0; j < values.length; j++) {
-                                avgValues[j] += values[j];
+                            double[] smsValues = {
+                              currFeature.numSmss,
+                              currFeature.top3AddressRatio,
+                              currFeature.avgSmsInterval
+                            };
+                            for (int j = 0; j < smsValues.length; j++) {
+                                avgValues[j] += smsValues[j];
                             }
                             break;
-//                        case "CallLogProbe":
-//                            double[] values =
-//                              {currFeature.numSmss,
-//                               currFeature.top3AddressRatio,
-//                               currFeature.avgSmsInterval};
-//                            for (int j = 0; j < values.length; j++) {
-//                                avgValues[j] += values[j];
-//                            }
-//                            break;
+                        case "CallLogProbe":
+                            double[] callLogValues = {
+                              currFeature.numCallLogs,
+                              currFeature.callDuration,
+                              currFeature.top3NumberRatio,
+                              currFeature.unknownCallRatio,
+                              currFeature.callOutRatio,
+                              currFeature.avgCallInterval
+                            };
+                            for (int j = 0; j < callLogValues.length; j++) {
+                                avgValues[j] += callLogValues[j];
+                            }
+                            break;
                         default:
                             break;
                     }
@@ -580,13 +671,13 @@ public class DataSetGenerator {
                     case "SmsProbe":
                         avgFeature.setValues_Sms(tableName, avgValues);
                         break;
-//                    case "CallLogProbe":
-//                        break;
+                    case "CallLogProbe":
+                        avgFeature.setValues_CallLog(tableName, avgValues);
+                        break;
                     default:
                         break;
                 }
                 users.put(nullProfileId, avgFeature);
-                // users.put(profileId, tempFeature);
             }
         }
 
