@@ -21,7 +21,7 @@ public class TestMain {
         Instances trainingSet = dataSetGen.transformToInstances(trUsers);
         trainingSet.setClassIndex(trainingSet.numAttributes() - 1);
         // System.out.println("TestMain.main(): trainingSet.toSummaryString()=" + trainingSet.toSummaryString());
-        System.out.println("TestMain.main(): trainingSet.toString()=" + trainingSet.toString());
+        // System.out.println("TestMain.main(): trainingSet.toString()=" + trainingSet.toString());
 
         Classifier cls = Classifiers.getClassifier("Logistic");
         // Classifier cls = Classifiers.getClassifier("NaiveBayes");

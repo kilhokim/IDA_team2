@@ -4,16 +4,16 @@ import dbConnection.DBConn;
 import dbConnection.DBReader;
 import operator.ReadWriteInstances;
 import structure.log.BasicLog;
+import structure.log.deviceInteraction.ApplicationsLog;
+import structure.log.deviceInteraction.ImageMediaLog;
 import structure.log.motion.AccelerometerLog;
 import weka.core.Attribute;
 import weka.core.DenseInstance;
 import weka.core.Instances;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
+import java.util.*;
 
 /**
  * Created by Ethan on 2015-09-23.
@@ -33,7 +33,7 @@ public class DataSetGenerator {
     // assign true value to the variables below, if you want to use the corresponding data tables.
 
     // motion
-    private boolean AccelerometerSensorProbe = true;
+    private boolean AccelerometerSensorProbe = false;
     private boolean GravitySensorProbe = false;
     private boolean LinearAccelerationSensorProbe = false;
     private boolean GyroscopeSensorProbe = false;
@@ -62,7 +62,7 @@ public class DataSetGenerator {
     // device interaction
     private boolean BrowserBookmarksProbe = false;
     private boolean BrowserSearchesProbe = false;
-    private boolean ImageMediaProbe = false;
+    private boolean ImageMediaProbe = true;
     private boolean VideoMediaProbe = false;
     private boolean AudioMediaProbe = false;
     private boolean RunningApplicationsProbe = false;
@@ -246,9 +246,85 @@ public class DataSetGenerator {
             avgZ /= logSize;
             double[] values = new double[]{avgX, avgY, avgZ};
             feature.setValues_Accelerometer(tableName, values);
-        } else if (tableName.equals("")) {
-            // insert codes..
         }
+        /**
+         @author Kilho Kim
+         @description ApplicationsProbe features
+         */
+        else if (tableName.equals("ApplicationsProbe")) {
+            int logSize = 0;
+            String currCategory;
+            int[] values = new int[Feature.categoryNames.length];
+
+            final String GOOGLE_PLAY_URL =
+              "https://play.google.com/store/apps/details?hl=en&id=";
+            final String CATEGORY_CSS_QUERY = "span[itemprop=\"genre\"]";
+
+                for (int j = 0; j < expIds.size(); j++) {
+                    int expId = expIds.get(j);
+                    ArrayList<BasicLog> tempChunkLogs = DBReader.readLog_customized(tableName,
+                            "where profile_id = " + profileId + " and expId = " + expId, test);
+                    for (int i = 0; i < tempChunkLogs.size(); i++) {
+                        try {
+                          ApplicationsLog log =
+                            (ApplicationsLog) tempChunkLogs.get(i);
+
+                          currCategory =
+                            project_team2.util.Parser
+                              .parseCategory(GOOGLE_PLAY_URL,
+                                log.packageName, CATEGORY_CSS_QUERY);
+                          int categoryIdx =
+                            Feature.categoryMap.get(currCategory);
+                          values[categoryIdx] += 1;
+                        } catch (IOException e) {
+                            continue;
+//                e.printStackTrace();
+                        } catch (NullPointerException e) {
+                            System.err.print("Not Found");
+                            continue;
+                        }
+                    }
+                    logSize += tempChunkLogs.size();
+                }
+                System.out.println("");
+                for (int i = 0; i < values.length; i++) {
+                   System.out.print(values[i] + " ");
+                   if (i == values.length -1) System.out.println("");
+                }
+                feature.setValues_Applications(tableName, values);
+        }
+        /**
+         @author Kilho Kim
+         @description ImageMediaProbe features
+         */
+        else if (tableName.equals("ImageMediaProbe")) {
+            int logSize = 0;
+            // int[] values = new int[Feature.categoryNames.length];
+
+            for (int j = 0; j < expIds.size(); j++) {
+                int expId = expIds.get(j);
+                ArrayList<BasicLog> tempChunkLogs = DBReader.readLog_customized(tableName,
+                        "where profile_id = " + profileId + " and expId = " + expId, test);
+                for (int i = 0; i < tempChunkLogs.size(); i++) {
+                    ImageMediaLog log = (ImageMediaLog) tempChunkLogs.get(i);
+
+                    log.bucketDisplayName
+
+
+
+
+                }
+                logSize += tempChunkLogs.size();
+            }
+            avgX /= logSize;
+            avgY /= logSize;
+            avgZ /= logSize;
+            double[] values = new double[]{avgX, avgY, avgZ};
+            feature.setValues_Accelerometer(tableName, values);
+
+
+        }
+        // else if
         return feature;
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////
