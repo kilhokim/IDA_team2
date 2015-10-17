@@ -10,7 +10,7 @@ import java.util.Calendar;
  */
 public class AudioMediaLog extends BasicLog {
     public String displayName;
-    public int size;
+    public long size;
     public String album;
     public String artist;
     public String composer;
@@ -39,7 +39,7 @@ public class AudioMediaLog extends BasicLog {
         super.scheduleDuration = 0;
 
         this.displayName = displayName;
-        this.size = Integer.parseInt(size);
+        this.size = Long.parseLong(size);
         this.album = album;
         this.artist = artist;
         this.composer = composer;
