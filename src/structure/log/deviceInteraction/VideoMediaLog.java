@@ -10,7 +10,7 @@ import java.util.Calendar;
  */
 public class VideoMediaLog extends BasicLog {
     public String displayName;
-    public int size;
+    public long size;
     public String album;
     public String artist;
     public int bookmark;
@@ -32,7 +32,7 @@ public class VideoMediaLog extends BasicLog {
     public static int energyConsumption = 1;
 
     public VideoMediaLog(int id, double timeStamp, long expId, String probeName, int profileId,
-                         String displayName, String size, String album, String artist,
+                         String displayName, long size, String album, String artist,
                          int bookmark, String bucketDisplayName, double dateAdded, double dateTaken,
                          int duration, int isPrivate, double latitude, double longitude,
                          String mimeType, String title, double miniThumbMagic, String resolution){
@@ -41,7 +41,7 @@ public class VideoMediaLog extends BasicLog {
         super.scheduleDuration = 0;
 
         this.displayName = displayName;
-        this.size = Integer.parseInt(size);
+        this.size = size;
         this.album = album;
         this.artist = artist;
         this.bookmark = bookmark;

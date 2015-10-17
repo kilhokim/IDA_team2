@@ -10,7 +10,7 @@ import java.util.Calendar;
  */
 public class ImageMediaLog extends BasicLog {
     public String displayName;
-    public int size;
+    public long size;
     public String bucketDisplayName;
     public int dateAdded;
     public Calendar calendarAdded;
@@ -28,7 +28,7 @@ public class ImageMediaLog extends BasicLog {
     public static int energyConsumption = 1;
 
     public ImageMediaLog(int id, double timeStamp, long expId, String probeName, int profileId,
-                         String displayName, int size, String bucketDisplayName,
+                         String displayName, long size, String bucketDisplayName,
                          double dateAdded, double dateTaken, int isPrivate, double latitude,
                          double longitude, String mimeType, String title,
                          double miniThumbMagic, int orientation) {
