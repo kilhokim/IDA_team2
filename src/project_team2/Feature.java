@@ -260,4 +260,32 @@ public class Feature {
   public void setLabel(String label){
       this.label = label;
   }
+
+  public String toString() {
+    Object[] fields = {
+      numBooksReference,numBusiness,numComics,numCommuncation,
+            numEducation,numEntertainment,numFinanace,numHealthFitness,
+            numLibrariesDemo,numLifestyle,numLiveWallpaper,numMediaVideo,
+            numMedical,numMusicAudio,numNewsMagazines,numPersonalization,
+            numPhotography,numProductivity,numShopping,numSocial,
+            numSports,numTools,numTransportation,numTravelLocal,
+            numWeather,numWidgets,numAction,numAdventure,numArcade,
+            numBoard,numCard,numCasino,numCasual,numEducational,
+            numMusic,numPuzzle,numRacing,numRolePlaying,numSimulation,
+               /*numSports,*/numStrategy,numTrivia,numWord,numAges5Under,
+            numAges6_8,numAges9Up,numPopularCharacters,numActionAdventure,
+            numBrainGames,numCreativity,/*numFamilyEducation;*/
+            numMusicVideo,numPretendPlay, top1BucketPhotoRatio, imageMediaSize,
+            top1BucketVideoRatio, videoMediaSize, videoDuration, numAudios,
+            audioMediaSize, audioDuration, numSmss, top3AddressRatio,
+            avgSmsInterval, numCallLogs, callDuration, top3NumberRatio,
+            unknownCallRatio, callOutRatio, avgCallInterval, label
+    };
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < fields.length; i++) {
+        sb.append(fields[i]);
+        sb.append(" ");
+    }
+    return sb.toString();
+  }
 }
