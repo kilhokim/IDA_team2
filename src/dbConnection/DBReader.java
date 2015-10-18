@@ -181,7 +181,7 @@ public class DBReader {
                     case "VideoMediaProbe":
                         logs.add(new VideoMediaLog(rs.getInt("id"), rs.getDouble("time_stamp"), rs.getLong("expId"),
                                 rs.getString("probe_name"), rs.getInt("profile_id"),
-                                rs.getString("_display_name"), rs.getString("_size"), rs.getString("album"), rs.getString("artist"),
+                                rs.getString("_display_name"), rs.getLong("_size"), rs.getString("album"), rs.getString("artist"),
                                 rs.getInt("bookmark"), rs.getString("bucket_display_name"), rs.getDouble("date_added"), rs.getDouble("datetaken"),
                                 rs.getInt("duration"), rs.getInt("isprivate"), rs.getDouble("latitude"), rs.getDouble("longitude"),
                                 rs.getString("mime_type"), rs.getString("title"), rs.getDouble("mini_thumb_magic"), rs.getString("resolution")));
@@ -420,7 +420,7 @@ public class DBReader {
                     case "VideoMediaProbe":
                         logs.add(new VideoMediaLog(rs.getInt("id"), rs.getDouble("time_stamp"), rs.getLong("expId"),
                                 rs.getString("probe_name"), rs.getInt("profile_id"),
-                                rs.getString("_display_name"), rs.getString("_size"), rs.getString("album"), rs.getString("artist"),
+                                rs.getString("_display_name"), rs.getLong("_size"), rs.getString("album"), rs.getString("artist"),
                                 rs.getInt("bookmark"), rs.getString("bucket_display_name"), rs.getDouble("date_added"), rs.getDouble("datetaken"),
                                 rs.getInt("duration"), rs.getInt("isprivate"), rs.getDouble("latitude"), rs.getDouble("longitude"),
                                 rs.getString("mime_type"), rs.getString("title"), rs.getDouble("mini_thumb_magic"), rs.getString("resolution")));
