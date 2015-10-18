@@ -5,6 +5,7 @@ import structure.weka.Classifiers;
 import weka.classifiers.Classifier;
 import weka.core.Instances;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
@@ -13,24 +14,38 @@ import java.util.HashMap;
 public class TestMain {
 
     public static void main(String[] args) {
-        DataSetGenerator dataSetGen = new DataSetGenerator();
-        HashMap<Integer, Feature> trUsers = dataSetGen.generateDataSet(false);
-        for (Integer i : trUsers.keySet()) {
-            System.out.println(i + ": " + trUsers.get(i));
+        // Conduct training with non-sensor data
+        NormalDataSetGenerator normalDataSetGen = new NormalDataSetGenerator();
+        HashMap<Integer, NormalFeature> normalTrUsers = normalDataSetGen.generateDataSet(false);
+        for (Integer i : normalTrUsers.keySet()) {
+            System.out.println(i + ": " + normalTrUsers.get(i));
         }
-        Instances trainingSet = dataSetGen.transformToInstances(trUsers);
-        trainingSet.setClassIndex(trainingSet.numAttributes() - 1);
+        Instances normalTrainingSet = normalDataSetGen.transformToInstances(normalTrUsers);
+        normalTrainingSet.setClassIndex(normalTrainingSet.numAttributes() - 1);
         // System.out.println("TestMain.main(): trainingSet.toSummaryString()=" + trainingSet.toSummaryString());
         // System.out.println("TestMain.main(): trainingSet.toString()=" + trainingSet.toString());
 
-        Classifier cls = Classifiers.getClassifier("Logistic");
+        // Conduct training with sensor data
+        SensorDataSetGenerator sensorDataSetGen = new SensorDataSetGenerator();
+
+        HashMap<Integer, ArrayList<SensorFeature>> sensorTrUsers = sensorDataSetGen.generateDataSet(false);
+        for (Integer i : sensorTrUsers.keySet()) {
+            System.out.println(i + ": " + sensorTrUsers.get(i));
+        }
+        Instances sensorTrainingSet = sensorDataSetGen.transformToInstances(sensorTrUsers);
+        sensorTrainingSet.setClassIndex(sensorTrainingSet.numAttributes() - 1);
+
+
+        // Fit model
+        Classifier normalCls = Classifiers.getClassifier("Logistic");
+        Classifier sensorCls = Classifiers.getClassifier("Logistic");
         // Classifier cls = Classifiers.getClassifier("NaiveBayes");
         try {
-            cls.buildClassifier(trainingSet);
+            normalCls.buildClassifier(normalTrainingSet);
+            sensorCls.buildClassifier(sensorTrainingSet);
         } catch (Exception e) {
             e.printStackTrace();
         }
-
 
         ////////////////////////////////////////////////////////////////////////////////////////////////
         //////////////////////////////////    Should be included!     //////////////////////////////////

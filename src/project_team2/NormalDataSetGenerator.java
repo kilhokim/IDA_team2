@@ -24,7 +24,7 @@ import java.util.*;
 /**
  * Created by Ethan on 2015-09-23.
  */
-public class DataSetGenerator {
+public class NormalDataSetGenerator {
 
     String labelName = "gender";
     ArrayList<String> tableNames;
@@ -86,7 +86,7 @@ public class DataSetGenerator {
     private boolean SystemSettingsProbe = false;
     private boolean TelephonyProbe = false;
 
-    public DataSetGenerator() {
+    public NormalDataSetGenerator() {
         tableNames = getTableNames();
     }
 
@@ -111,17 +111,17 @@ public class DataSetGenerator {
     }
 
     public static void main(String[] args) {
-        DataSetGenerator dataSetGen = new DataSetGenerator();
-        HashMap<Integer, Feature> users = dataSetGen.generateDataSet(false);
+        NormalDataSetGenerator dataSetGen = new NormalDataSetGenerator();
+        HashMap<Integer, NormalFeature> users = dataSetGen.generateDataSet(false);
         Instances dataSet = dataSetGen.transformToInstances(users);
         dataSet.setClassIndex(dataSet.numAttributes() - 1);
         ReadWriteInstances.writeFile(dataSet, dataSetGen.savePath, dataSetGen.fileName, dataSetGen.extension);
         DBConn.close();
     }
 
-    public Instances transformToInstances(HashMap<Integer, Feature> dataSet) {
-        Iterator<Feature> iterator = dataSet.values().iterator();
-        Feature sampleFeature = iterator.next();
+    public Instances transformToInstances(HashMap<Integer, NormalFeature> dataSet) {
+        Iterator<NormalFeature> iterator = dataSet.values().iterator();
+        NormalFeature sampleFeature = iterator.next();
 
         Field[] numericFields = sampleFeature.getNumericAttributes();
         Field[] nominalFields = sampleFeature.getNominalAttributes();
@@ -163,16 +163,16 @@ public class DataSetGenerator {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////    Should be included!     //////////////////////////////////
-    public HashMap<Integer, Feature> generateDataSet(boolean test) {
+    public HashMap<Integer, NormalFeature> generateDataSet(boolean test) {
         Map<String, List<Integer>> nullFeatureProfileIdMap =
           new HashMap<String, List<Integer>>();
-        HashMap<Integer, Feature> users = new HashMap<Integer, Feature>();
+        HashMap<Integer, NormalFeature> users = new HashMap<Integer, NormalFeature>();
         if (batchProcess) {
             ArrayList<Integer> profileIds = DBReader.readProfileIds(test);
             for (int profileId : profileIds) {
                 String tempUserLabel = DBReader.readLabel(labelName, profileId, test);
                 for (String tableName : tableNames) {
-                    Feature tempFeature = generateFeature_batchProcess(tableName, profileId, tempUserLabel, test);
+                    NormalFeature tempFeature = generateFeature_batchProcess(tableName, profileId, tempUserLabel, test);
                     // IMPORTANT: Handle exceptions
                     if (tempFeature != null) {
                         users.put(profileId, tempFeature);
@@ -213,8 +213,8 @@ public class DataSetGenerator {
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private Feature generateFeature(HashMap<String, ArrayList<BasicLog>> userLogs, String label) {
-        Feature feature = new Feature();
+    private NormalFeature generateFeature(HashMap<String, ArrayList<BasicLog>> userLogs, String label) {
+        NormalFeature feature = new NormalFeature();
         feature.setLabel(label);
         for (String tableName : userLogs.keySet()) {
             if (tableName.equals("AccelerometerSensorProbe")) {
@@ -240,8 +240,8 @@ public class DataSetGenerator {
         return feature;
     }
 
-    public Feature generateFeature_batchProcess(String tableName, int profileId, String label, boolean test) {
-        Feature feature = new Feature();
+    public NormalFeature generateFeature_batchProcess(String tableName, int profileId, String label, boolean test) {
+        NormalFeature feature = new NormalFeature();
         feature.setLabel(label);
         ArrayList<Integer> expIds = DBReader.readExpIds(tableName, profileId, test);
 
@@ -274,7 +274,7 @@ public class DataSetGenerator {
          */
         else if (tableName.equals("ApplicationsProbe")) {
             String currCategory;
-            int[] values = new int[Feature.categoryNames.length];
+            int[] values = new int[NormalFeature.categoryNames.length];
 
             final String GOOGLE_PLAY_URL =
               "https://play.google.com/store/apps/details?hl=en&id=";
@@ -297,7 +297,7 @@ public class DataSetGenerator {
                                   log.packageName, CATEGORY_CSS_QUERY);
                             }
                           int categoryIdx =
-                            Feature.categoryMap.get(currCategory);
+                            NormalFeature.categoryMap.get(currCategory);
                           values[categoryIdx] += 1;
                         } catch (IOException e) {
                             continue;
@@ -601,8 +601,8 @@ public class DataSetGenerator {
         System.out.println("");
     }
 
-    private HashMap<Integer, Feature> fillMissingFeatures(
-            HashMap<Integer, Feature> users,
+    private HashMap<Integer, NormalFeature> fillMissingFeatures(
+            HashMap<Integer, NormalFeature> users,
             Map<String, List<Integer>> nullFeatureProfileIdMap,
             ArrayList<Integer> profileIds,
             boolean test) {
@@ -632,7 +632,7 @@ public class DataSetGenerator {
                 int currProfileId = profileIds.get(i);
                 if (!nullProfileIds.contains(currProfileId)) {
                     numProfileIds += 1;
-                    Feature currFeature = users.get(currProfileId);
+                    NormalFeature currFeature = users.get(currProfileId);
                     switch (tableName) {
                         case "SmsProbe":
                             double[] smsValues = {
@@ -671,7 +671,7 @@ public class DataSetGenerator {
                 int nullProfileId = nullProfileIds.get(i);
                 String nullProfileIdUserLabel =
                   DBReader.readLabel(labelName, nullProfileId, test);
-                Feature avgFeature = new Feature();
+                NormalFeature avgFeature = new NormalFeature();
                 avgFeature.setLabel(nullProfileIdUserLabel);
                 printFeatureValue(avgValues);
                 switch (tableName) {

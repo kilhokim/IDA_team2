@@ -7,7 +7,7 @@ import java.util.Map;
 /**
  * Created by Ethan on 2015-09-24.
  */
-public class Feature {
+public class NormalFeature {
 
 //    // TODO:
 //    public double avgX;
@@ -156,7 +156,7 @@ public class Feature {
      */
     public void setValues_Applications(String dataType, int[] values) {
       if (dataType.equals("ApplicationsProbe")) {
-        assert (values.length == Feature.categoryNames.length);
+        assert (values.length == NormalFeature.categoryNames.length);
         numBooksReference = values[0];
         numBusiness = values[1];
         numComics = values[2];
