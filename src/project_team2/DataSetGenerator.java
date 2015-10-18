@@ -68,11 +68,11 @@ public class DataSetGenerator {
     // device interaction
     private boolean BrowserBookmarksProbe = false;
     private boolean BrowserSearchesProbe = false;
-    private boolean ImageMediaProbe = false;
+    private boolean ImageMediaProbe = true;
     private boolean VideoMediaProbe = false;
     private boolean AudioMediaProbe = false;
     private boolean RunningApplicationsProbe = false;
-    private boolean ApplicationsProbe = true;
+    private boolean ApplicationsProbe = false;
     private boolean ScreenProbe = false;
     private boolean AccountsProbe = false;
     private boolean ProcessStatisticsProbe = false;
@@ -319,42 +319,49 @@ public class DataSetGenerator {
          */
         else if (tableName.equals("ImageMediaProbe")) {
             String currBucketDisplayName;
-            int[] values = new int[5];
+            double[] values = new double[2];
+            double numImages = 0;
+            Map<String, Integer> bucketImageMap = new HashMap<String, Integer>();
             int imageMediaSize = 0;
+
+            ArrayList<BasicLog> totalChunkLogs = DBReader.readLog_customized(tableName,
+                    "where profile_id = " + profileId + " order by time_stamp asc", test);
+
+            // IMPORTANT: Escape rule for exception
+            // FIXME:
+            if (totalChunkLogs.size() < 10) {
+                System.err.println("Exception: profileId=" + profileId +
+                        ", tableName=" + tableName);
+                return null;
+            }
 
             for (int j = 0; j < expIds.size(); j++) {
                 int expId = expIds.get(j);
                 ArrayList<BasicLog> tempChunkLogs = DBReader.readLog_customized(tableName,
                         "where profile_id = " + profileId + " and expId = " + expId, test);
+
                 for (int i = 0; i < tempChunkLogs.size(); i++) {
                     ImageMediaLog log = (ImageMediaLog) tempChunkLogs.get(i);
                     currBucketDisplayName = log.bucketDisplayName;
+                    numImages += 1;
                     imageMediaSize += log.size;
-                    switch (currBucketDisplayName) {
-                        case "Camera":
-                            values[0] += 1;
-                            break;
-                        case "100ANDRO":
-                            values[0] += 1;
-                            break;
-                        case "CandyCam":
-                            values[0] += 1;
-                            break;
-                        case "KakaoTalk":
-                            values[1] += 1;
-                            break;
-                        case "Download":
-                            values[2] += 1;
-                            break;
-                        case "Screenshots":
-                            values[3] += 1;
-                            break;
-                        default:
-                            break;
+
+                    if (bucketImageMap.containsKey(currBucketDisplayName)) {
+                        bucketImageMap.put(currBucketDisplayName,
+                                bucketImageMap.get(currBucketDisplayName)+1);
+                    } else {
+                        bucketImageMap.put(currBucketDisplayName, 1);
                     }
                 }
             }
-            values[3] = Math.abs(imageMediaSize);
+
+            List<Integer> numPhotoPerBuckets =
+                    new ArrayList<Integer>(bucketImageMap.values());
+            Collections.sort(numPhotoPerBuckets);
+            Collections.reverse(numPhotoPerBuckets);
+
+            values[0] = numPhotoPerBuckets.get(0) / numImages;
+            values[1] = Math.abs(imageMediaSize);
             printFeatureValue(values);
             feature.setValues_ImageMedia(tableName, values);
         }
@@ -364,9 +371,22 @@ public class DataSetGenerator {
          */
         else if (tableName.equals("VideoMediaProbe")) {
             String currBucketDisplayName;
-            int[] values = new int[4];
+            double[] values = new double[3];
+            int numVideos = 0;
+            Map<String, Integer> bucketVideoMap = new HashMap<String, Integer>();
             int videoMediaSize = 0;
             int duration = 0;
+
+            ArrayList<BasicLog> totalChunkLogs = DBReader.readLog_customized(tableName,
+                    "where profile_id = " + profileId + " order by time_stamp asc", test);
+
+            // IMPORTANT: Escape rule for exception
+            // FIXME:
+            if (totalChunkLogs.size() < 10) {
+                System.err.println("Exception: profileId=" + profileId +
+                        ", tableName=" + tableName);
+                return null;
+            }
 
             for (int j = 0; j < expIds.size(); j++) {
                 int expId = expIds.get(j);
@@ -375,27 +395,26 @@ public class DataSetGenerator {
                 for (int i = 0; i < tempChunkLogs.size(); i++) {
                     VideoMediaLog log = (VideoMediaLog) tempChunkLogs.get(i);
                     currBucketDisplayName = log.bucketDisplayName;
+                    numVideos += 1;
                     videoMediaSize += log.size;
                     duration += log.duration;
-                    switch (currBucketDisplayName) {
-                        case "Camera":
-                            values[0] += 1;
-                            break;
-                        case "100ANDRO":
-                            values[0] += 1;
-                            break;
-                        case "KakaoTalkDownload":
-                            values[1] += 1;
-                            break;
-                        case "video":
-                            values[1] += 1;
-                        default:
-                            break;
+
+                    if (bucketVideoMap.containsKey(currBucketDisplayName)) {
+                        bucketVideoMap.put(currBucketDisplayName,
+                                bucketVideoMap.get(currBucketDisplayName)+1);
+                    } else {
+                        bucketVideoMap.put(currBucketDisplayName, 1);
                     }
                 }
             }
-            values[2] = Math.abs(videoMediaSize);
-            values[3] = Math.abs(duration);
+            List<Integer> numVideoPerBuckets =
+                    new ArrayList<Integer>(bucketVideoMap.values());
+            Collections.sort(numVideoPerBuckets);
+            Collections.reverse(numVideoPerBuckets);
+
+            values[0] = numVideoPerBuckets.get(0) / numVideos;
+            values[1] = Math.abs(videoMediaSize);
+            values[2] = Math.abs(duration);
             printFeatureValue(values);
             feature.setValues_VideoMedia(tableName, values);
         }
@@ -441,20 +460,20 @@ public class DataSetGenerator {
             double prevTimeStamp = -1.0;
             double currTimeStamp;
 
-            ArrayList<BasicLog> tempChunkLogs = DBReader.readLog_customized(tableName,
+            ArrayList<BasicLog> totalChunkLogs = DBReader.readLog_customized(tableName,
                     "where profile_id = " + profileId + " order by time_stamp asc", test);
 //                        "where profile_id = " + profileId + " and expId = " + expId + " order by time_stamp asc", test);
 
             // IMPORTANT: Escape rule for exception
             // FIXME:
-            if (tempChunkLogs.size() < 10) {
+            if (totalChunkLogs.size() < 10) {
                 System.err.println("Exception: profileId=" + profileId +
                                    ", tableName=" + tableName);
                 return null;
             }
 
-            for (int i = 0; i < tempChunkLogs.size(); i++) {
-                SmsLog log = (SmsLog) tempChunkLogs.get(i);
+            for (int i = 0; i < totalChunkLogs.size(); i++) {
+                SmsLog log = (SmsLog) totalChunkLogs.get(i);
                 numSmss += 1;
                 currAddress = log.address;
                 if (addressSmsMap.containsKey(currAddress)) {
@@ -513,20 +532,20 @@ public class DataSetGenerator {
             double numUnknownCall = 0;
             double numCallOut = 0;
 
-            ArrayList<BasicLog> tempChunkLogs = DBReader.readLog_customized(tableName,
+            ArrayList<BasicLog> totalChunkLogs = DBReader.readLog_customized(tableName,
                     "where profile_id = " + profileId + " order by time_stamp asc", test);
 //                        "where profile_id = " + profileId + " and expId = " + expId + " order by time_stamp asc", test);
 
             // IMPORTANT: Escape rule for exception
             // FIXME:
-            if (tempChunkLogs.size() < 10) {
+            if (totalChunkLogs.size() < 10) {
                 System.err.println("Exception: profileId=" + profileId +
                         ", tableName=" + tableName);
                 return null;
             }
 
-            for (int i = 0; i < tempChunkLogs.size(); i++) {
-                CallLog log = (CallLog) tempChunkLogs.get(i);
+            for (int i = 0; i < totalChunkLogs.size(); i++) {
+                CallLog log = (CallLog) totalChunkLogs.get(i);
                 numCallLogs += 1;
                 callDuration += log.duration;
                 if (log.numberType == 0) {
@@ -615,6 +634,12 @@ public class DataSetGenerator {
 
             double avgValues[];
             switch (tableName) {
+                case "ImageMediaProbe":
+                    avgValues = new double[2];
+                    break;
+                case "VideoMediaProbe":
+                    avgValues = new double[3];
+                    break;
                 case "SmsProbe":
                     avgValues = new double[3];
                     break;
@@ -634,11 +659,30 @@ public class DataSetGenerator {
                     numProfileIds += 1;
                     Feature currFeature = users.get(currProfileId);
                     switch (tableName) {
+                        case "ImageMediaProbe":
+                            double[] imageMediaValues = {
+                                currFeature.top1BucketPhotoRatio,
+                                currFeature.imageMediaSize
+                            };
+                            for (int j = 0; j < imageMediaValues.length; j++) {
+                                avgValues[j] += imageMediaValues[j];
+                            }
+                            break;
+                        case "VideoMediaProbe":
+                            double[] videoMediaValues = {
+                                currFeature.top1BucketVideoRatio,
+                                currFeature.videoMediaSize,
+                                currFeature.videoDuration
+                            };
+                            for (int j = 0; j < videoMediaValues.length; j++) {
+                                avgValues[j] += videoMediaValues[j];
+                            }
+                            break;
                         case "SmsProbe":
                             double[] smsValues = {
-                              currFeature.numSmss,
-                              currFeature.top3AddressRatio,
-                              currFeature.avgSmsInterval
+                                currFeature.numSmss,
+                                currFeature.top3AddressRatio,
+                                currFeature.avgSmsInterval
                             };
                             for (int j = 0; j < smsValues.length; j++) {
                                 avgValues[j] += smsValues[j];
@@ -646,12 +690,12 @@ public class DataSetGenerator {
                             break;
                         case "CallLogProbe":
                             double[] callLogValues = {
-                              currFeature.numCallLogs,
-                              currFeature.callDuration,
-                              currFeature.top3NumberRatio,
-                              currFeature.unknownCallRatio,
-                              currFeature.callOutRatio,
-                              currFeature.avgCallInterval
+                                currFeature.numCallLogs,
+                                currFeature.callDuration,
+                                currFeature.top3NumberRatio,
+                                currFeature.unknownCallRatio,
+                                currFeature.callOutRatio,
+                                currFeature.avgCallInterval
                             };
                             for (int j = 0; j < callLogValues.length; j++) {
                                 avgValues[j] += callLogValues[j];
@@ -675,6 +719,11 @@ public class DataSetGenerator {
                 avgFeature.setLabel(nullProfileIdUserLabel);
                 printFeatureValue(avgValues);
                 switch (tableName) {
+                    case "ImageMediaProbe":
+                        avgFeature.setValues_ImageMedia(tableName, avgValues);
+                        break;
+                    case "VideoMediaProbe":
+                        avgFeature.setValues_VideoMedia(tableName, avgValues);
                     case "SmsProbe":
                         avgFeature.setValues_Sms(tableName, avgValues);
                         break;

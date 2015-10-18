@@ -58,18 +58,14 @@ public class Feature {
      * @author Kilho Kim
      * @description ImageMediaProbe features
      */
-    public double numPhotosCamera;
-    public double numPhotosKakaoTalk;
-    public double numPhotosDownload;
-    public double numPhotosScreenshots;
+    public double top1BucketPhotoRatio;
     public double imageMediaSize;
 
     /**
      * @author Kilho Kim
      * @description VideoMediaProbe features
      */
-    public double numVideosCamera;
-    public double numVideosKakaoTalk;
+    public double top1BucketVideoRatio;
     public double videoMediaSize;
     public double videoDuration;
 
@@ -105,8 +101,8 @@ public class Feature {
 
     String[] numericAtts = {
                "numBooksReference","numBusiness","numComics","numCommuncation","numEducation","numEntertainment","numFinanace","numHealthFitness","numLibrariesDemo","numLifestyle","numLiveWallpaper","numMediaVideo","numMedical","numMusicAudio","numNewsMagazines","numPersonalization","numPhotography","numProductivity","numShopping","numSocial","numSports","numTools","numTransportation","numTravelLocal","numWeather","numWidgets","numAction","numAdventure","numArcade","numBoard","numCard","numCasino","numCasual","numEducational","numMusic","numPuzzle","numRacing","numRolePlaying","numSimulation",/*"numSports",*/"numStrategy","numTrivia","numWord","numAges5Under","numAges6_8","numAges9Up","numPopularCharacters","numActionAdventure","numBrainGames","numCreativity",/*"numFamilyEducation",*/"numMusicVideo","numPretendPlay",
-            "numPhotosCamera", "numPhotosDownload", "numPhotosScreenshots", "imageMediaSize",
-            "numVideosCamera", "numVideosKakaoTalk", "videoMediaSize", "videoDuration",
+            "top1BucketPhotoRatio", "imageMediaSize",
+            "top1BucketVideoRatio", "videoMediaSize", "videoDuration",
             "numAudios", "audioMediaSize", "audioDuration",
             "numSmss", "top3AddressRatio", "avgSmsInterval",
             "numCallLogs", "callDuration", "top3NumberRatio", "unknownCallRatio", "callOutRatio", "avgCallInterval"
@@ -213,24 +209,20 @@ public class Feature {
       }
     }
 
-  public void setValues_ImageMedia(String dataType, int[] values){
+  public void setValues_ImageMedia(String dataType, double[] values){
     if (dataType.equals("ImageMediaProbe")) {
-      assert (values.length == 5);
-      numPhotosCamera = values[0];
-      numPhotosKakaoTalk = values[1];
-      numPhotosDownload = values[2];
-      numPhotosScreenshots = values[3];
-      imageMediaSize = values[4];
+      assert (values.length == 2);
+      top1BucketPhotoRatio = values[0];
+      imageMediaSize = values[1];
     }
   }
 
-  public void setValues_VideoMedia(String dataType, int[] values) {
+  public void setValues_VideoMedia(String dataType, double[] values) {
     if (dataType.equals("VideoMediaProbe")) {
-      assert (values.length == 4);
-      numVideosCamera = values[0];
-      numVideosKakaoTalk = values[1];
-      videoMediaSize = values[2];
-      videoDuration = values[3];
+      assert (values.length == 3);
+      top1BucketVideoRatio = values[0];
+      videoMediaSize = values[1];
+      videoDuration = values[2];
     }
   }
 
