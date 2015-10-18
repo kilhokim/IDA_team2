@@ -289,8 +289,13 @@ public class DataSetGenerator {
                           ApplicationsLog log =
                             (ApplicationsLog) tempChunkLogs.get(i);
 
-                          currCategory = Parser.parseCategory(GOOGLE_PLAY_URL,
+//                          currCategory = Parser.parseCategory(GOOGLE_PLAY_URL,
+//                                  log.packageName, CATEGORY_CSS_QUERY);
+                            currCategory = log.appCategory;
+                            if (currCategory == null) {
+                              currCategory = Parser.parseCategory(GOOGLE_PLAY_URL,
                                   log.packageName, CATEGORY_CSS_QUERY);
+                            }
                           int categoryIdx =
                             Feature.categoryMap.get(currCategory);
                           values[categoryIdx] += 1;

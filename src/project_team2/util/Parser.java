@@ -60,12 +60,12 @@ public class Parser {
   public static String parseCategory(String url, String packageName,
                                    String cssQuery) throws IOException, SQLException {
 
-    // Search DB for any existing category for given packageName
-    ResultSet rs = DBConn.execQuery("SELECT * FROM ApplicationsProbe WHERE packageName='" + packageName + "' GROUP BY packageName", false);
-    rs.first();
-    String catFromDB = rs.getString("appCategory");
-
-    if (!rs.wasNull()) return catFromDB;
+//    // Search DB for any existing category for given packageName
+//    ResultSet rs = DBConn.execQuery("SELECT * FROM ApplicationsProbe WHERE packageName='" + packageName + "' GROUP BY packageName", false);
+//    rs.first();
+//    String catFromDB = rs.getString("appCategory");
+//
+//    if (!rs.wasNull()) return catFromDB;
 
     Document doc;
 
