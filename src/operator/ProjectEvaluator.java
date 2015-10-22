@@ -11,7 +11,6 @@ import structure.log.positioning.*;
 import structure.log.social.CallLog;
 import structure.log.social.ContactLog;
 import structure.log.social.SmsLog;
-import util.Keys;
 import weka.classifiers.Classifier;
 import weka.core.Instances;
 
@@ -22,9 +21,9 @@ import java.util.HashMap;
  */
 public class ProjectEvaluator {
 
-    public static String testUrl = Keys.DB_URL;
-    public static String testUser = Keys.DB_USERNAME;
-    public static String testPwd = Keys.DB_PWD;
+    public static String testUrl = "jdbc:mysql://imlab-ws3.snu.ac.kr/team2";
+    public static String testUser = "team2";
+    public static String testPwd = "5xGpx3EO81";
 
     public static boolean AccelerometerSensorProbe = false;
     public static boolean GravitySensorProbe = false;

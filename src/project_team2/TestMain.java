@@ -23,7 +23,7 @@ public class TestMain {
         // System.out.println("TestMain.main(): trainingSet.toSummaryString()=" + trainingSet.toSummaryString());
         // System.out.println("TestMain.main(): trainingSet.toString()=" + trainingSet.toString());
 
-        Classifier cls = Classifiers.getClassifier("Logistic");
+        Classifier cls = Classifiers.getClassifier("J48");
         // Classifier cls = Classifiers.getClassifier("NaiveBayes");
         try {
             cls.buildClassifier(trainingSet);
