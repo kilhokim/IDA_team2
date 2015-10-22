@@ -31,6 +31,6 @@ public interface DataSetGenerator {
 
     public Feature generateFeature(HashMap<String, ArrayList<BasicLog>> userLogs, String label);
 
-    public Feature generateFeature_batchProcess(String tableName, int profileId, String label, boolean test);
+    public Feature generateFeature_batchProcess(ArrayList<String> tableNames, int profileId, String label, boolean test);
     ////////////////////////////////////////////////////////////////////////////////////////////////
 }

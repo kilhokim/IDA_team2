@@ -16,7 +16,7 @@ public class TestMain {
     public static void main(String[] args) {
         // Conduct training with non-sensor data
         NormalDataSetGenerator normalDataSetGen = new NormalDataSetGenerator();
-        HashMap<Integer, NormalFeature> normalTrUsers = normalDataSetGen.generateDataSet(false);
+        HashMap<Integer, Feature> normalTrUsers = normalDataSetGen.generateDataSet(false);
         for (Integer i : normalTrUsers.keySet()) {
             System.out.println(i + ": " + normalTrUsers.get(i));
         }
@@ -28,7 +28,7 @@ public class TestMain {
         // Conduct training with sensor data
         SensorDataSetGenerator sensorDataSetGen = new SensorDataSetGenerator();
 
-        HashMap<Integer, ArrayList<SensorFeature>> sensorTrUsers = sensorDataSetGen.generateDataSet(false);
+        HashMap<Integer, Feature> sensorTrUsers = sensorDataSetGen.generateDataSet(false);
         for (Integer i : sensorTrUsers.keySet()) {
             System.out.println(i + ": " + sensorTrUsers.get(i));
         }
@@ -49,7 +49,7 @@ public class TestMain {
 
         ////////////////////////////////////////////////////////////////////////////////////////////////
         //////////////////////////////////    Should be included!     //////////////////////////////////
-        ProjectEvaluator.runTest(dataSetGen, cls);
+//        ProjectEvaluator.runTest(dataSetGen, cls);
         ////////////////////////////////////////////////////////////////////////////////////////////////
     }
 }

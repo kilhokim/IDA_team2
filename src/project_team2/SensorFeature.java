@@ -1,42 +1,50 @@
 package project_team2;
 
 import java.lang.reflect.Field;
+import java.util.List;
 
 /**
  * Created by Ethan on 2015-09-24.
  */
-public class SensorFeature {
+public class SensorFeature implements Feature {
+
+  // Total number of Accelerometer expIds
+  public int numAccExps;
+  // Total number of Gyroscope expIds
+  public int numGyroExps;
+  // Total number of RotationVector expIds
+  public int numRotExps;
 
   // TODO:
   // AccelerometerSensorProbe
-  public double avgStd;
-  public double maxStd;
-  public double minStd;
+  public double[] avgStd;
+  public double[] maxStd;
+  public double[] minStd;
 
   // Gyroscope
-  public double avgStdX;
-  public double maxStdX;
-  public double minStdX;
-  public double avgStdY;
-  public double maxStdY;
-  public double minStdY;
-  public double avgStdZ;
-  public double maxStdZ;
-  public double minStdZ;
+  public double[] avgStdX;
+  public double[] maxStdX;
+  public double[] minStdX;
+  public double[] avgStdY;
+  public double[] maxStdY;
+  public double[] minStdY;
+  public double[] avgStdZ;
+  public double[] maxStdZ;
+  public double[] minStdZ;
 
   // RotationVector
-  public double avgStdC;
-  public double maxStdC;
-  public double minStdC;
-  public double rAvgStdX;
-  public double rMaxStdX;
-  public double rMinStdX;
-  public double rAvgStdY;
-  public double rMaxStdY;
-  public double rMinStdY;
-  public double rAvgStdZ;
-  public double rMaxStdZ;
-  public double rMinStdZ;
+  public double[] avgStdC;
+  public double[] maxStdC;
+  public double[] minStdC;
+  public double[] rAvgStdX;
+  public double[] rMaxStdX;
+  public double[] rMinStdX;
+  public double[] rAvgStdY;
+  public double[] rMaxStdY;
+  public double[] rMinStdY;
+  public double[] rAvgStdZ;
+  public double[] rMaxStdZ;
+  public double[] rMinStdZ;
 
   public String label;
 
@@ -76,56 +84,72 @@ public class SensorFeature {
     return fields;
   }
 
-  public void setValues_Accelerometer(String dataType, double[] values){
+  // valueLists[exp][attrIdx]
+  public void setValues_Accelerometer(String dataType, double[][] valueLists){
     if(dataType.equals("AccelerometerSensorProbe")){
-      avgStd = values[0];
-      maxStd = values[1];
-      minStd = values[2];
+      assert (valueLists[0].length == 3);
+      numAccExps = valueLists.length;
+
+      for (int exp = 0; exp < numAccExps; exp++) {
+        avgStd[exp] = valueLists[exp][0];
+        maxStd[exp] = valueLists[exp][1];
+        minStd[exp] = valueLists[exp][2];
+      }
     }
   }
 
-  public void setValues_Gyroscope(String dataType, double[] values){
+  // valueLists[exp][attrIdx]
+  public void setValues_Gyroscope(String dataType, double[][] valueLists){
     if(dataType.equals("GyroscopeSensorProbe")){
-      avgStdX = values[0];
-      maxStdX = values[1];
-      minStdX = values[2];
-      avgStdY = values[3];
-      maxStdY = values[4];
-      minStdY = values[5];
-      avgStdZ = values[6];
-      maxStdZ = values[7];
-      minStdZ = values[8];
+      assert (valueLists[0].length == 9);
+      numGyroExps = valueLists.length;
+
+      for (int exp = 0; exp < numAccExps; exp++) {
+        avgStdX[exp] = valueLists[exp][0];
+        maxStdX[exp] = valueLists[exp][1];
+        minStdX[exp] = valueLists[exp][2];
+        avgStdY[exp] = valueLists[exp][3];
+        maxStdY[exp] = valueLists[exp][4];
+        minStdY[exp] = valueLists[exp][5];
+        avgStdZ[exp] = valueLists[exp][6];
+        maxStdZ[exp] = valueLists[exp][7];
+        minStdZ[exp] = valueLists[exp][8];
+      }
     }
   }
 
-  public void setValues_RotationVector(String dataType, double[] values){
+  // valueLists[exp][attrIdx]
+  public void setValues_RotationVector(String dataType, double[][] valueLists){
     if(dataType.equals("RotationVectorSensorProbe")){
-      // Fix !!!
-      avgStdC = values[0];
-      maxStdC = values[1];
-      minStdC = values[2];
-      rAvgStdX = values[3];
-      rMaxStdX = values[4];
-      rMinStdX = values[5];
-      rAvgStdY = values[6];
-      rMaxStdY = values[7];
-      rMinStdY = values[8];
-      rAvgStdZ = values[9];
-      rMaxStdZ = values[10];
-      rMinStdZ = values[11];
+      assert (valueLists[0].length == 12);
+      numRotExps = valueLists.length;
+      for (int exp = 0; exp < numRotExps; exp++) {
+        avgStdC[exp] = valueLists[exp][0];
+        maxStdC[exp] = valueLists[exp][1];
+        minStdC[exp] = valueLists[exp][2];
+        rAvgStdX[exp] = valueLists[exp][3];
+        rMaxStdX[exp] = valueLists[exp][4];
+        rMinStdX[exp] = valueLists[exp][5];
+        rAvgStdY[exp] = valueLists[exp][6];
+        rMaxStdY[exp] = valueLists[exp][7];
+        rMinStdY[exp] = valueLists[exp][8];
+        rAvgStdZ[exp] = valueLists[exp][9];
+        rMaxStdZ[exp] = valueLists[exp][10];
+        rMinStdZ[exp] = valueLists[exp][11];
+      }
     }
   }
 
-  public double getValue(int index) throws Exception, SecurityException{
+  public double getValue(int index) throws Exception {
     double result;
-    Class<?> cls =this.getClass();
+    Class<?> cls = this.getClass();
     Field attr = cls.getDeclaredField(numericAtts[index]);
     result = (double) attr.get(this);
     return result;
   }
 
-  public void setValue(int index, double value) throws Exception, SecurityException{
-    Class<?> cls =this.getClass();
+  public void setValue (int index, double value) throws Exception {
+    Class<?> cls = this.getClass();
     Field attr = cls.getDeclaredField(numericAtts[index]);
     attr.setDouble(this, value);
   }

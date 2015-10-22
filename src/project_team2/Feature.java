@@ -11,8 +11,6 @@ public interface Feature {
 
     public Field[] getNominalAttributes();
 
-    public void setValues_Accelerometer(String dataType, double[] values);
-
     public void setLabel(String label);
 
 }
