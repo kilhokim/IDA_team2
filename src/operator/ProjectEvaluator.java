@@ -11,7 +11,7 @@ import structure.log.positioning.*;
 import structure.log.social.CallLog;
 import structure.log.social.ContactLog;
 import structure.log.social.SmsLog;
-import util.Keys;
+import project_team2.util.Keys;
 import weka.classifiers.Classifier;
 import weka.core.Instances;
 

@@ -86,7 +86,7 @@ public class NormalDataSetGenerator implements DataSetGenerator {
   private boolean SystemSettingsProbe = false;
   private boolean TelephonyProbe = false;
 
-  Map<String, List<Integer>> nullFeatureProfileIdMap =
+  public Map<String, List<Integer>> nullFeatureProfileIdMap =
           new HashMap<String, List<Integer>>();
 
 
