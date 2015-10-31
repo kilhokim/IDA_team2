@@ -10,52 +10,74 @@ public class SensorFeature implements Feature {
 
   // Total number of Accelerometer expIds
   public int numAccExps;
-  // Total number of Gyroscope expIds
-  public int numGyroExps;
-  // Total number of RotationVector expIds
-  public int numRotExps;
 
   // TODO:
   // AccelerometerSensorProbe
-  public double[] avgStd;
-  public double[] maxStd;
-  public double[] minStd;
+  public double[] avg_x;
+  public double[] avg_y;
+  public double[] avg_z;
 
-  // Gyroscope
-  public double[] avgStdX;
-  public double[] maxStdX;
-  public double[] minStdX;
-  public double[] avgStdY;
-  public double[] maxStdY;
-  public double[] minStdY;
-  public double[] avgStdZ;
-  public double[] maxStdZ;
-  public double[] minStdZ;
+  public double[] std_x;
+  public double[] std_y;
+  public double[] std_z;
 
-  // RotationVector
-  public double[] avgStdC;
-  public double[] maxStdC;
-  public double[] minStdC;
-  public double[] rAvgStdX;
-  public double[] rMaxStdX;
-  public double[] rMinStdX;
-  public double[] rAvgStdY;
-  public double[] rMaxStdY;
-  public double[] rMinStdY;
-  public double[] rAvgStdZ;
-  public double[] rMaxStdZ;
-  public double[] rMinStdZ;
+  public double[] avg_diff_x;
+  public double[] avg_diff_y;
+  public double[] avg_diff_z;
+
+  public double[] avg_acc;
+
+  public double[] time_btwn_peaks_x;
+  public double[] time_btwn_peaks_y;
+  public double[] time_btwn_peaks_z;
+
+  public double[] bin_dist_1_x;
+  public double[] bin_dist_2_x;
+  public double[] bin_dist_3_x;
+  public double[] bin_dist_4_x;
+  public double[] bin_dist_5_x;
+  public double[] bin_dist_6_x;
+  public double[] bin_dist_7_x;
+  public double[] bin_dist_8_x;
+  public double[] bin_dist_9_x;
+  public double[] bin_dist_10_x;
+
+  public double[] bin_dist_1_y;
+  public double[] bin_dist_2_y;
+  public double[] bin_dist_3_y;
+  public double[] bin_dist_4_y;
+  public double[] bin_dist_5_y;
+  public double[] bin_dist_6_y;
+  public double[] bin_dist_7_y;
+  public double[] bin_dist_8_y;
+  public double[] bin_dist_9_y;
+  public double[] bin_dist_10_y;
+
+  public double[] bin_dist_1_z;
+  public double[] bin_dist_2_z;
+  public double[] bin_dist_3_z;
+  public double[] bin_dist_4_z;
+  public double[] bin_dist_5_z;
+  public double[] bin_dist_6_z;
+  public double[] bin_dist_7_z;
+  public double[] bin_dist_8_z;
+  public double[] bin_dist_9_z;
+  public double[] bin_dist_10_z;
 
   public String label;
 
-  String[] numericAtts = {"avgStd", "maxStd", "minStd"
-          , "avgStdX", "maxStdX", "minStdX"
-          , "avgStdY", "maxStdY", "minStdY"
-          , "avgStdZ", "maxStdZ", "minStdZ"
-          , "avgStdC", "maxStdC", "minStdC"
-          , "rAvgStdX", "rMaxStdX", "rMinStdX"
-          , "rAvgStdY", "rMaxStdY", "rMinStdY"
-          , "rAvgStdZ", "rMaxStdZ", "rMinStdZ"};
+  String[] numericAtts = {
+    "avg_x", "avg_y", "avg_z", "std_x", "std_y", "std_z",
+    "avg_diff_x", "avg_diff_y", "avg_diff_z", "avg_acc",
+    "time_btwn_peaks_x", "time_btwn_peaks_y", "time_btwn_peaks_z",
+    "bin_dist_1_x", "bin_dist_2_x", "bin_dist_3_x", "bin_dist_4_x",
+    "bin_dist_5_x", "bin_dist_6_x", "bin_dist_7_x", "bin_dist_8_x",
+    "bin_dist_9_x", "bin_dist_10_x", "bin_dist_1_y", "bin_dist_2_y",
+    "bin_dist_3_y", "bin_dist_4_y", "bin_dist_5_y", "bin_dist_6_y",
+    "bin_dist_7_y", "bin_dist_8_y", "bin_dist_9_y", "bin_dist_10_y",
+    "bin_dist_1_z", "bin_dist_2_z", "bin_dist_3_z", "bin_dist_4_z",
+    "bin_dist_5_z", "bin_dist_6_z", "bin_dist_7_z", "bin_dist_8_z",
+    "bin_dist_9_z", "bin_dist_10_z"};
   String[] nominalAtts = {"label"};   // label must be the last one!
 
   public Field[] getNumericAttributes(){
@@ -87,71 +109,55 @@ public class SensorFeature implements Feature {
   // valueLists[exp][attrIdx]
   public void setValues_Accelerometer(String dataType, double[][] valueLists){
     if(dataType.equals("AccelerometerSensorProbe")){
-      assert (valueLists[0].length == 3);
+      assert (valueLists[0].length == 43);
       numAccExps = valueLists.length;
 
       for (int exp = 0; exp < numAccExps; exp++) {
-        avgStd[exp] = valueLists[exp][0];
-        maxStd[exp] = valueLists[exp][1];
-        minStd[exp] = valueLists[exp][2];
+        avg_x[exp] = valueLists[exp][0];
+        avg_y[exp] = valueLists[exp][1];
+        avg_z[exp] = valueLists[exp][2];
+        std_x[exp] = valueLists[exp][3];
+        std_y[exp] = valueLists[exp][4];
+        std_z[exp] = valueLists[exp][5];
+        avg_diff_x[exp] = valueLists[exp][6];
+        avg_diff_y[exp] = valueLists[exp][7];
+        avg_diff_z[exp] = valueLists[exp][8];
+        avg_acc[exp] = valueLists[exp][9];
+        time_btwn_peaks_x[exp] = valueLists[exp][10];
+        time_btwn_peaks_y[exp] = valueLists[exp][11];
+        time_btwn_peaks_z[exp] = valueLists[exp][12];
+        bin_dist_1_x[exp] = valueLists[exp][13];
+        bin_dist_2_x[exp] = valueLists[exp][14];
+        bin_dist_3_x[exp] = valueLists[exp][15];
+        bin_dist_4_x[exp] = valueLists[exp][16];
+        bin_dist_5_x[exp] = valueLists[exp][17];
+        bin_dist_6_x[exp] = valueLists[exp][18];
+        bin_dist_7_x[exp] = valueLists[exp][19];
+        bin_dist_8_x[exp] = valueLists[exp][20];
+        bin_dist_9_x[exp] = valueLists[exp][21];
+        bin_dist_10_x[exp] = valueLists[exp][22];
+        bin_dist_1_y[exp] = valueLists[exp][23];
+        bin_dist_2_y[exp] = valueLists[exp][24];
+        bin_dist_3_y[exp] = valueLists[exp][25];
+        bin_dist_4_y[exp] = valueLists[exp][26];
+        bin_dist_5_y[exp] = valueLists[exp][27];
+        bin_dist_6_y[exp] = valueLists[exp][28];
+        bin_dist_7_y[exp] = valueLists[exp][29];
+        bin_dist_8_y[exp] = valueLists[exp][30];
+        bin_dist_9_y[exp] = valueLists[exp][31];
+        bin_dist_10_y[exp] = valueLists[exp][32];
+        bin_dist_1_z[exp] = valueLists[exp][33];
+        bin_dist_2_z[exp] = valueLists[exp][34];
+        bin_dist_3_z[exp] = valueLists[exp][35];
+        bin_dist_4_z[exp] = valueLists[exp][36];
+        bin_dist_5_z[exp] = valueLists[exp][37];
+        bin_dist_6_z[exp] = valueLists[exp][38];
+        bin_dist_7_z[exp] = valueLists[exp][39];
+        bin_dist_8_z[exp] = valueLists[exp][40];
+        bin_dist_9_z[exp] = valueLists[exp][41];
+        bin_dist_10_z[exp] = valueLists[exp][42];
       }
     }
-  }
-
-  // valueLists[exp][attrIdx]
-  public void setValues_Gyroscope(String dataType, double[][] valueLists){
-    if(dataType.equals("GyroscopeSensorProbe")){
-      assert (valueLists[0].length == 9);
-      numGyroExps = valueLists.length;
-
-      for (int exp = 0; exp < numAccExps; exp++) {
-        avgStdX[exp] = valueLists[exp][0];
-        maxStdX[exp] = valueLists[exp][1];
-        minStdX[exp] = valueLists[exp][2];
-        avgStdY[exp] = valueLists[exp][3];
-        maxStdY[exp] = valueLists[exp][4];
-        minStdY[exp] = valueLists[exp][5];
-        avgStdZ[exp] = valueLists[exp][6];
-        maxStdZ[exp] = valueLists[exp][7];
-        minStdZ[exp] = valueLists[exp][8];
-      }
-    }
-  }
-
-  // valueLists[exp][attrIdx]
-  public void setValues_RotationVector(String dataType, double[][] valueLists){
-    if(dataType.equals("RotationVectorSensorProbe")){
-      assert (valueLists[0].length == 12);
-      numRotExps = valueLists.length;
-      for (int exp = 0; exp < numRotExps; exp++) {
-        avgStdC[exp] = valueLists[exp][0];
-        maxStdC[exp] = valueLists[exp][1];
-        minStdC[exp] = valueLists[exp][2];
-        rAvgStdX[exp] = valueLists[exp][3];
-        rMaxStdX[exp] = valueLists[exp][4];
-        rMinStdX[exp] = valueLists[exp][5];
-        rAvgStdY[exp] = valueLists[exp][6];
-        rMaxStdY[exp] = valueLists[exp][7];
-        rMinStdY[exp] = valueLists[exp][8];
-        rAvgStdZ[exp] = valueLists[exp][9];
-        rMaxStdZ[exp] = valueLists[exp][10];
-        rMinStdZ[exp] = valueLists[exp][11];
-      }
-    }
-  }
-
-  public double getValue(int index) throws Exception {
-    double result;
-    Class<?> cls = this.getClass();
-    Field attr = cls.getDeclaredField(numericAtts[index]);
-    result = (double) attr.get(this);
-    return result;
-  }
-
-  public void setValue (int index, double value) throws Exception {
-    Class<?> cls = this.getClass();
-    Field attr = cls.getDeclaredField(numericAtts[index]);
-    attr.setDouble(this, value);
   }
 
   public void setLabel(String label){
