@@ -85,22 +85,6 @@ public class SensorDataSetGenerator implements DataSetGenerator {
   // time window size
   static int timeWindowSize = 500;
 
-  // for normalization - static variables are needed to conduct bactch process
-  // Accelerometer
-  static double maxAccNotSQRT = 0.0;
-
-  // Gyroscope
-  static double maxGyX = 0.0;
-  static double maxGyY = 0.0;
-  static double maxGyZ = 0.0;
-
-  // RotationVector
-  static double maxCos = 0.0;
-  static double maxSinX = 0.0;
-  static double maxSinY = 0.0;
-  static double maxSinZ = 0.0;
-
-
   public SensorDataSetGenerator() {
     tableNames = getTableNames();
   }
@@ -109,23 +93,15 @@ public class SensorDataSetGenerator implements DataSetGenerator {
     ArrayList<String> tableNames = new ArrayList<String>();
     Field[] fields = this.getClass().getDeclaredFields();
     for (Field field : fields) {
-      if (!field.getName().equals("labelName") &&
-              !field.getName().equals("tableNames") &&
-              !field.getName().equals("savePath") &&
-              !field.getName().equals("fileName") &&
-              !field.getName().equals("extension") &&
-              !field.getName().equals("batchProcess") &&
-              !field.getName().equals("timeWindowSize") &&
-              !field.getName().equals("maxAccNotSQRT") &&
-              !field.getName().equals("maxGyX") &&
-              !field.getName().equals("maxGyY") &&
-              !field.getName().equals("maxGyZ") &&
-              !field.getName().equals("maxCos") &&
-              !field.getName().equals("maxSinX") &&
-              !field.getName().equals("maxSinY") &&
-              !field.getName().equals("maxSinZ")
-              )
-      {
+      if (
+        !field.getName().equals("labelName") &&
+        !field.getName().equals("tableNames") &&
+        !field.getName().equals("savePath") &&
+        !field.getName().equals("fileName") &&
+        !field.getName().equals("extension") &&
+        !field.getName().equals("batchProcess") &&
+        !field.getName().equals("timeWindowSize")
+      ) {
         try {
           if ((boolean) field.get(this)) tableNames.add(field.getName());
         } catch (IllegalAccessException e) {
@@ -139,9 +115,9 @@ public class SensorDataSetGenerator implements DataSetGenerator {
   public static void main(String[] args) {
     SensorDataSetGenerator sensorDataSetGen = new SensorDataSetGenerator();
     HashMap<Integer, Feature> users = sensorDataSetGen.generateDataSet(false);
-    Instances dataSet = sensorDataSetGen.transformToInstances(users);
-    dataSet.setClassIndex(dataSet.numAttributes() - 1);
-    ReadWriteInstances.writeFile(dataSet, sensorDataSetGen.savePath, sensorDataSetGen.fileName, sensorDataSetGen.extension);
+//    Instances dataSet = sensorDataSetGen.transformToInstances(users);
+//    dataSet.setClassIndex(dataSet.numAttributes() - 1);
+//    ReadWriteInstances.writeFile(dataSet, sensorDataSetGen.savePath, sensorDataSetGen.fileName, sensorDataSetGen.extension);
     DBConn.close();
   }
 
@@ -174,13 +150,13 @@ public class SensorDataSetGenerator implements DataSetGenerator {
     for (int profileId : dataSet.keySet()) {
       SensorFeature currFeature = (SensorFeature)dataSet.get(profileId);
       // Choose the minimum value of numExps from different kinds of sensors
-      int numExps = currFeature.numAccExps;
-      for (int exp = 0; exp < numExps; exp++) {
+      int numInstances = currFeature.numAccInstances;
+      for (int inst = 0; inst < numInstances; inst++) {
         double[] instValues = new double[insts.numAttributes()];
         for (int i = 0; i < instValues.length; i++) {
           try {
             if (i < numericFields.length)
-              instValues[i] = ((double[])numericFields[i].get(dataSet.get(profileId)))[exp];
+              instValues[i] = ((double[])numericFields[i].get(dataSet.get(profileId)))[inst];
             else {
               String tempLabel = "" + nominalFields[i - numericFields.length].get(dataSet.get(profileId));
               instValues[i] = insts.attribute(i).indexOfValue(tempLabel);
@@ -264,6 +240,7 @@ public class SensorDataSetGenerator implements DataSetGenerator {
     SensorFeature feature = new SensorFeature();
     feature.setLabel(label);
 
+    System.out.println("Starting batch processing...");
     // Iterate over table names (probes)
     for (String tableName : tableNames) {
       ArrayList<Integer> expIds = DBReader.readExpIds(tableName, profileId, test);
@@ -300,6 +277,12 @@ public class SensorDataSetGenerator implements DataSetGenerator {
           double sum_x = 0, sum_y = 0, sum_z = 0;
           double sum_x_sq = 0, sum_y_sq = 0, sum_z_sq = 0;
           double sum_diff_x = 0, sum_diff_y = 0, sum_diff_z = 0, sum_acc = 0;
+          double min_x = Double.MAX_VALUE,
+                 min_y = Double.MAX_VALUE,
+                 min_z = Double.MAX_VALUE;
+          double max_x = Double.MIN_VALUE,
+                 max_y = Double.MIN_VALUE,
+                 max_z = Double.MIN_VALUE;
           double[] x_logs = new double[timeWindowSize];
           double[] y_logs = new double[timeWindowSize];
           double[] z_logs = new double[timeWindowSize];
@@ -321,6 +304,13 @@ public class SensorDataSetGenerator implements DataSetGenerator {
                 sum_x_sq += x_logs[l]*x_logs[l];
                 sum_y_sq += y_logs[l]*y_logs[l];
                 sum_z_sq += z_logs[l]*z_logs[l];
+
+                if (x_logs[l] < min_x) min_x = x_logs[l];
+                if (x_logs[l] > max_x) max_x = x_logs[l];
+                if (y_logs[l] < min_y) min_y = y_logs[l];
+                if (y_logs[l] > max_y) max_y = y_logs[l];
+                if (z_logs[l] < min_z) min_z = z_logs[l];
+                if (z_logs[l] > max_z) max_z = z_logs[l];
               }
               avg_x = sum_x/timeWindowSize;
               avg_y = sum_y/timeWindowSize;
@@ -350,6 +340,23 @@ public class SensorDataSetGenerator implements DataSetGenerator {
               values[valueIdx][8] = sum_diff_z/timeWindowSize; // avg_diff_z
               values[valueIdx][9] = Math.sqrt(sum_acc)/timeWindowSize; // avg_acc
 
+              // values[valueIdx][10] = ?  // TODO: time_btwn_peaks_x
+              // values[valueIdx][11] = ?  // TODO: time_btwn_peaks_y
+              // values[valueIdx][12] = ?  // TODO: time_btwn_peaks_z
+               values[valueIdx][10] = 0;
+               values[valueIdx][11] = 0;
+               values[valueIdx][12] = 0;
+
+              double[] dist_x = getBinDist(x_logs, min_x, max_x);
+              double[] dist_y = getBinDist(y_logs, min_y, max_y);
+              double[] dist_z = getBinDist(z_logs, min_z, max_z);
+              for (int j = 13; j < 13+10; j++)
+                values[valueIdx][j] = dist_x[j-13];
+              for (int j = 23; j < 23+10; j++)
+                values[valueIdx][j] = dist_y[j-23];
+              for (int j = 33; j < 33+10; j++)
+                values[valueIdx][j] = dist_z[j-33];
+
 
               valueIdx++; // IMPORTANT: increase the valueIdx
                           // after putting a single instance
@@ -358,66 +365,54 @@ public class SensorDataSetGenerator implements DataSetGenerator {
               sum_x = 0; sum_y = 0; sum_z = 0;
               sum_x_sq = 0; sum_y_sq = 0; sum_z_sq = 0;
               sum_diff_x = 0; sum_diff_y = 0; sum_diff_z = 0; sum_acc = 0;
+              min_x = Double.MAX_VALUE;
+              min_y = Double.MAX_VALUE;
+              min_z = Double.MAX_VALUE;
+              max_x = Double.MIN_VALUE;
+              max_y = Double.MIN_VALUE;
+              max_z = Double.MIN_VALUE;
               x_logs = new double[timeWindowSize];
               y_logs = new double[timeWindowSize];
               z_logs = new double[timeWindowSize];
+              indexTimeWin = 0;
 
               if(expIdSize  < timeWindowSize) break;
             }
           }
         }
 
-        for (int exp = 0; exp < expIds.size(); exp++) {
-          int expId = expIds.get(exp);
-          ArrayList<BasicLog> tempChunkLogs =
-            DBReader.readLog_customized(tableName,
-            "where profile_id = " + profileId + " and expId = " + expId , test);
-          int expIdSize = tempChunkLogs.size();
-
-          if( expIdSize >= timeWindowSize){
-            int indexTimeWin = 0;
-            double avgAcc = 0.0;
-            double avgSqAcc = 0.0;
-
-            double avgVarAcc =0.0;
-            double maxStd = 0.0;
-            double minStd = Double.MAX_VALUE;
-
-            int numOfTimeWindow = 0;
-            for (int i = 0; i < tempChunkLogs.size(); i++) {
-              indexTimeWin++;
-              expIdSize--;
-              AccelerometerLog log = (AccelerometerLog) tempChunkLogs.get(i);
-              double currentSqAcc =
-                (log.x*log.x + log.y*log.y + log.z*log.z)/maxAccNotSQRT;
-              double currentAcc = Math.sqrt(currentSqAcc);
-              avgAcc += currentAcc;
-              avgSqAcc += currentSqAcc;
-              if(indexTimeWin == timeWindowSize){
-                numOfTimeWindow++;
-                double currentStd = Math.sqrt(avgSqAcc/timeWindowSize - Math.pow(avgAcc/timeWindowSize, 2));
-                avgVarAcc += currentStd;
-                if (currentStd > maxStd) maxStd = currentStd;
-                if (minStd > currentStd) minStd = currentStd;
-                // initialize
-                indexTimeWin = 0;
-                avgAcc = 0.0;
-                avgSqAcc =0.0;
-                if(expIdSize  < timeWindowSize) break;
-              }
-            }
-//							System.out.println(profileId+"\t"+ expId+"\t"+ avgVarAcc/numOfTimeWindow+"\t" + maxStd + "\t" + minStd);
-
-            values[exp][0] = avgVarAcc/numOfTimeWindow;
-            values[exp][1] = maxStd;
-            values[exp][2] = minStd;
-          }
+        for (int inst = 0; inst < 10; inst++) {
+          System.out.println(values[inst].toString());
         }
         feature.setValues_Accelerometer(tableName, values);
       }
     }
 
     return feature;
+  }
+
+  public static double[] getBinDist(double[] logs, double min, double max) {
+    double[] dist = new double[10];
+    double interval = (max - min) / 10;
+    for (int l = 0; l < logs.length; l++) {
+      double log = logs[l] - min;
+      if (interval*0 <= log && log < interval*1) dist[0] += 1;
+      else if (interval*1 <= log && log < interval*2) dist[1] += 1;
+      else if (interval*2 <= log && log < interval*3) dist[2] += 1;
+      else if (interval*3 <= log && log < interval*4) dist[3] += 1;
+      else if (interval*4 <= log && log < interval*5) dist[4] += 1;
+      else if (interval*5 <= log && log < interval*6) dist[5] += 1;
+      else if (interval*6 <= log && log < interval*7) dist[6] += 1;
+      else if (interval*7 <= log && log < interval*8) dist[7] += 1;
+      else if (interval*8 <= log && log < interval*9) dist[8] += 1;
+      else dist[9] += 1;
+    }
+
+    for (int i = 0; i < dist.length; i++) {
+      dist[i] /= logs.length;
+    }
+
+    return dist;
   }
   ////////////////////////////////////////////////////////////////////////////////////////////////
 }
