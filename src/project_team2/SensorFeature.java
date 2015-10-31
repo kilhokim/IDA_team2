@@ -8,8 +8,8 @@ import java.util.List;
  */
 public class SensorFeature implements Feature {
 
-  // Total number of Accelerometer expIds
-  public int numAccExps;
+  // Total number of Accelerometer instances
+  public int numAccInstances;
 
   // TODO:
   // AccelerometerSensorProbe
@@ -110,52 +110,52 @@ public class SensorFeature implements Feature {
   public void setValues_Accelerometer(String dataType, double[][] valueLists){
     if(dataType.equals("AccelerometerSensorProbe")){
       assert (valueLists[0].length == 43);
-      numAccExps = valueLists.length;
+      numAccInstances = valueLists.length;
 
-      for (int exp = 0; exp < numAccExps; exp++) {
-        avg_x[exp] = valueLists[exp][0];
-        avg_y[exp] = valueLists[exp][1];
-        avg_z[exp] = valueLists[exp][2];
-        std_x[exp] = valueLists[exp][3];
-        std_y[exp] = valueLists[exp][4];
-        std_z[exp] = valueLists[exp][5];
-        avg_diff_x[exp] = valueLists[exp][6];
-        avg_diff_y[exp] = valueLists[exp][7];
-        avg_diff_z[exp] = valueLists[exp][8];
-        avg_acc[exp] = valueLists[exp][9];
-        time_btwn_peaks_x[exp] = valueLists[exp][10];
-        time_btwn_peaks_y[exp] = valueLists[exp][11];
-        time_btwn_peaks_z[exp] = valueLists[exp][12];
-        bin_dist_1_x[exp] = valueLists[exp][13];
-        bin_dist_2_x[exp] = valueLists[exp][14];
-        bin_dist_3_x[exp] = valueLists[exp][15];
-        bin_dist_4_x[exp] = valueLists[exp][16];
-        bin_dist_5_x[exp] = valueLists[exp][17];
-        bin_dist_6_x[exp] = valueLists[exp][18];
-        bin_dist_7_x[exp] = valueLists[exp][19];
-        bin_dist_8_x[exp] = valueLists[exp][20];
-        bin_dist_9_x[exp] = valueLists[exp][21];
-        bin_dist_10_x[exp] = valueLists[exp][22];
-        bin_dist_1_y[exp] = valueLists[exp][23];
-        bin_dist_2_y[exp] = valueLists[exp][24];
-        bin_dist_3_y[exp] = valueLists[exp][25];
-        bin_dist_4_y[exp] = valueLists[exp][26];
-        bin_dist_5_y[exp] = valueLists[exp][27];
-        bin_dist_6_y[exp] = valueLists[exp][28];
-        bin_dist_7_y[exp] = valueLists[exp][29];
-        bin_dist_8_y[exp] = valueLists[exp][30];
-        bin_dist_9_y[exp] = valueLists[exp][31];
-        bin_dist_10_y[exp] = valueLists[exp][32];
-        bin_dist_1_z[exp] = valueLists[exp][33];
-        bin_dist_2_z[exp] = valueLists[exp][34];
-        bin_dist_3_z[exp] = valueLists[exp][35];
-        bin_dist_4_z[exp] = valueLists[exp][36];
-        bin_dist_5_z[exp] = valueLists[exp][37];
-        bin_dist_6_z[exp] = valueLists[exp][38];
-        bin_dist_7_z[exp] = valueLists[exp][39];
-        bin_dist_8_z[exp] = valueLists[exp][40];
-        bin_dist_9_z[exp] = valueLists[exp][41];
-        bin_dist_10_z[exp] = valueLists[exp][42];
+      for (int inst = 0; inst < numAccInstances; inst++) {
+        avg_x[inst] = valueLists[inst][0];
+        avg_y[inst] = valueLists[inst][1];
+        avg_z[inst] = valueLists[inst][2];
+        std_x[inst] = valueLists[inst][3];
+        std_y[inst] = valueLists[inst][4];
+        std_z[inst] = valueLists[inst][5];
+        avg_diff_x[inst] = valueLists[inst][6];
+        avg_diff_y[inst] = valueLists[inst][7];
+        avg_diff_z[inst] = valueLists[inst][8];
+        avg_acc[inst] = valueLists[inst][9];
+        time_btwn_peaks_x[inst] = valueLists[inst][10];
+        time_btwn_peaks_y[inst] = valueLists[inst][11];
+        time_btwn_peaks_z[inst] = valueLists[inst][12];
+        bin_dist_1_x[inst] = valueLists[inst][13];
+        bin_dist_2_x[inst] = valueLists[inst][14];
+        bin_dist_3_x[inst] = valueLists[inst][15];
+        bin_dist_4_x[inst] = valueLists[inst][16];
+        bin_dist_5_x[inst] = valueLists[inst][17];
+        bin_dist_6_x[inst] = valueLists[inst][18];
+        bin_dist_7_x[inst] = valueLists[inst][19];
+        bin_dist_8_x[inst] = valueLists[inst][20];
+        bin_dist_9_x[inst] = valueLists[inst][21];
+        bin_dist_10_x[inst] = valueLists[inst][22];
+        bin_dist_1_y[inst] = valueLists[inst][23];
+        bin_dist_2_y[inst] = valueLists[inst][24];
+        bin_dist_3_y[inst] = valueLists[inst][25];
+        bin_dist_4_y[inst] = valueLists[inst][26];
+        bin_dist_5_y[inst] = valueLists[inst][27];
+        bin_dist_6_y[inst] = valueLists[inst][28];
+        bin_dist_7_y[inst] = valueLists[inst][29];
+        bin_dist_8_y[inst] = valueLists[inst][30];
+        bin_dist_9_y[inst] = valueLists[inst][31];
+        bin_dist_10_y[inst] = valueLists[inst][32];
+        bin_dist_1_z[inst] = valueLists[inst][33];
+        bin_dist_2_z[inst] = valueLists[inst][34];
+        bin_dist_3_z[inst] = valueLists[inst][35];
+        bin_dist_4_z[inst] = valueLists[inst][36];
+        bin_dist_5_z[inst] = valueLists[inst][37];
+        bin_dist_6_z[inst] = valueLists[inst][38];
+        bin_dist_7_z[inst] = valueLists[inst][39];
+        bin_dist_8_z[inst] = valueLists[inst][40];
+        bin_dist_9_z[inst] = valueLists[inst][41];
+        bin_dist_10_z[inst] = valueLists[inst][42];
       }
     }
   }
