@@ -106,7 +106,11 @@ public class SensorFeature implements Feature {
     return fields;
   }
 
-  // valueLists[exp][attrIdx]
+  public void setNumAccInstances(int numAccInstances) {
+    this.numAccInstances = numAccInstances;
+  }
+
+  // valueLists[inst][attrIdx]
   public void setValues_Accelerometer(String dataType, double[][] valueLists){
     if(dataType.equals("AccelerometerSensorProbe")){
       assert (valueLists[0].length == 43);

@@ -83,7 +83,7 @@ public class SensorDataSetGenerator implements DataSetGenerator {
   private boolean TelephonyProbe = false;
 
   // time window size
-  static int timeWindowSize = 50;
+  static int timeWindowSize = 500;
 
   // for normalization - static variables are needed to conduct bactch process
   // Accelerometer
@@ -174,9 +174,7 @@ public class SensorDataSetGenerator implements DataSetGenerator {
     for (int profileId : dataSet.keySet()) {
       SensorFeature currFeature = (SensorFeature)dataSet.get(profileId);
       // Choose the minimum value of numExps from different kinds of sensors
-      int numExps = Math.min(Math.min(currFeature.numAccExps,
-                             currFeature.numGyroExps),
-                             currFeature.numRotExps);
+      int numExps = currFeature.numAccExps;
       for (int exp = 0; exp < numExps; exp++) {
         double[] instValues = new double[insts.numAttributes()];
         for (int i = 0; i < instValues.length; i++) {
@@ -232,6 +230,9 @@ public class SensorDataSetGenerator implements DataSetGenerator {
   }
   ////////////////////////////////////////////////////////////////////////////////////////////////
 
+  /**
+   * @deprecated
+   */
   public Feature generateFeature(HashMap<String, ArrayList<BasicLog>> userLogs, String label) {
     Feature feature = new SensorFeature();
     feature.setLabel(label);
@@ -263,22 +264,108 @@ public class SensorDataSetGenerator implements DataSetGenerator {
     SensorFeature feature = new SensorFeature();
     feature.setLabel(label);
 
+    // Iterate over table names (probes)
     for (String tableName : tableNames) {
       ArrayList<Integer> expIds = DBReader.readExpIds(tableName, profileId, test);
       if (tableName.equals("AccelerometerSensorProbe")) {
-        // First loop - evaluate maxAccNotSQRT
+
+        int numAccInstances = 0;
+
+        // First iteration - to calculate the total number of instances
         for (int exp = 0; exp < expIds.size(); exp++) {
           int expId = expIds.get(exp);
           ArrayList<BasicLog> tempChunkLogs =
             DBReader.readLog_customized(tableName,
             "where profile_id = " + profileId + " and expId = " + expId , test);
+          int expIdSize = tempChunkLogs.size();
+
+          // We abandon the logs which don't fit in the single time window
+          numAccInstances += expIdSize / timeWindowSize;
+        }
+
+        feature.setNumAccInstances(numAccInstances);
+        double[][] values = new double[numAccInstances][43];
+        int valueIdx = 0;
+
+        // Second iteration - to compute feature values for each instance
+        for (int exp = 0; exp < expIds.size(); exp++) {
+          int expId = expIds.get(exp);
+          ArrayList<BasicLog> tempChunkLogs =
+            DBReader.readLog_customized(tableName,
+            "where profile_id = " + profileId + " and expId = " + expId , test);
+          int expIdSize = tempChunkLogs.size();
+          int indexTimeWin = 0;
+
+          double avg_x = 0, avg_y = 0, avg_z = 0;
+          double sum_x = 0, sum_y = 0, sum_z = 0;
+          double sum_x_sq = 0, sum_y_sq = 0, sum_z_sq = 0;
+          double sum_diff_x = 0, sum_diff_y = 0, sum_diff_z = 0, sum_acc = 0;
+          double[] x_logs = new double[timeWindowSize];
+          double[] y_logs = new double[timeWindowSize];
+          double[] z_logs = new double[timeWindowSize];
+
+          // Iterate over instances in current expIds
           for (int i = 0; i < tempChunkLogs.size(); i++) {
+            indexTimeWin++;
+            expIdSize--;
             AccelerometerLog log = (AccelerometerLog) tempChunkLogs.get(i);
-            double accel=  log.x * log.x + log.y* log.y + log.z * log.z;
-            if(accel > maxAccNotSQRT) maxAccNotSQRT = accel;
+            x_logs[indexTimeWin-1] = log.x;
+            y_logs[indexTimeWin-1] = log.y;
+            z_logs[indexTimeWin-1] = log.z;
+
+            // Generate the new single instance when it fits in the time window:
+            if (indexTimeWin == timeWindowSize) {
+              // 1. Calculate the average and stdev (avg_*, std_*)
+              for (int l = 0; l < timeWindowSize; l++) {
+                sum_x += x_logs[l]; sum_y += y_logs[l]; sum_z += z_logs[l];
+                sum_x_sq += x_logs[l]*x_logs[l];
+                sum_y_sq += y_logs[l]*y_logs[l];
+                sum_z_sq += z_logs[l]*z_logs[l];
+              }
+              avg_x = sum_x/timeWindowSize;
+              avg_y = sum_y/timeWindowSize;
+              avg_z = sum_z/timeWindowSize;
+              values[valueIdx][0] = avg_x; // avg_x
+              values[valueIdx][1] = avg_y; // avg_y
+              values[valueIdx][2] = avg_z; // avg_z
+              values[valueIdx][3] =
+                Math.sqrt(sum_x_sq/timeWindowSize - avg_x*avg_x); // std_x
+              values[valueIdx][4] =
+                Math.sqrt(sum_y_sq/timeWindowSize - avg_y*avg_y); // std_y
+              values[valueIdx][5] =
+                Math.sqrt(sum_z_sq/timeWindowSize - avg_z*avg_z); // std_z
+
+              // 2. Calculate the average absolute deviation (avg_diff_*)
+              //    and average acceleration (avg_acc)
+              for (int l = 0; l < timeWindowSize; l++) {
+                sum_diff_x += Math.abs(x_logs[l] - avg_x);
+                sum_diff_y += Math.abs(y_logs[l] - avg_y);
+                sum_diff_z += Math.abs(z_logs[l] - avg_z);
+                sum_acc += x_logs[l]*x_logs[l] + y_logs[l]*y_logs[l] +
+                           z_logs[l]*z_logs[l];
+
+              }
+              values[valueIdx][6] = sum_diff_x/timeWindowSize; // avg_diff_x
+              values[valueIdx][7] = sum_diff_y/timeWindowSize; // avg_diff_y
+              values[valueIdx][8] = sum_diff_z/timeWindowSize; // avg_diff_z
+              values[valueIdx][9] = Math.sqrt(sum_acc)/timeWindowSize; // avg_acc
+
+
+              valueIdx++; // IMPORTANT: increase the valueIdx
+                          // after putting a single instance
+              // Re-initialize the variables
+              avg_x = 0; avg_y = 0; avg_z = 0;
+              sum_x = 0; sum_y = 0; sum_z = 0;
+              sum_x_sq = 0; sum_y_sq = 0; sum_z_sq = 0;
+              sum_diff_x = 0; sum_diff_y = 0; sum_diff_z = 0; sum_acc = 0;
+              x_logs = new double[timeWindowSize];
+              y_logs = new double[timeWindowSize];
+              z_logs = new double[timeWindowSize];
+
+              if(expIdSize  < timeWindowSize) break;
+            }
           }
         }
-        double[][] values = new double[expIds.size()][3];
 
         for (int exp = 0; exp < expIds.size(); exp++) {
           int expId = expIds.get(exp);
@@ -327,225 +414,6 @@ public class SensorDataSetGenerator implements DataSetGenerator {
           }
         }
         feature.setValues_Accelerometer(tableName, values);
-      } else if (tableName.equals("GyroscopeSensorProbe")) {
-        // First loop - evaluate maxGyX, maxGyY, maxGyZ
-        for (int exp = 0; exp < expIds.size(); exp++) {
-          int expId = expIds.get(exp);
-          ArrayList<BasicLog> tempChunkLogs =
-            DBReader.readLog_customized(tableName,
-            "where profile_id = " + profileId + " and expId = " + expId , test);
-          for (int i = 0; i < tempChunkLogs.size(); i++) {
-            GyroscopeLog log = (GyroscopeLog) tempChunkLogs.get(i);
-            if (log.x > maxGyX) maxGyX = log.x;
-            if (log.x > maxGyY) maxGyY = log.y;
-            if (log.x > maxGyZ) maxGyZ = log.z;
-          }
-        }
-        double[][] values = new double[expIds.size()][9];
-
-        for (int exp = 0; exp < expIds.size(); exp++) {
-          int expId = expIds.get(exp);
-          ArrayList<BasicLog> tempChunkLogs =
-            DBReader.readLog_customized(tableName,
-            "where profile_id = " + profileId + " and expId = " + expId, test);
-          int expIdSize = tempChunkLogs.size();
-          if( expIdSize >= timeWindowSize){
-            int indexTimeWin = 0;
-            // initialize variables used in timewindow
-            double avgX = 0.0;
-            double avgSqX = 0.0;
-            double avgY = 0.0;
-            double avgSqY = 0.0;
-            double avgZ = 0.0;
-            double avgSqZ = 0.0;
-
-            // initialize variables used in expId
-            double avgStdX =0.0;
-            double maxStdX = 0.0;
-            double minStdX = Double.MAX_VALUE;
-            double avgStdY =0.0;
-            double maxStdY = 0.0;
-            double minStdY = Double.MAX_VALUE;
-            double avgStdZ =0.0;
-            double maxStdZ = 0.0;
-            double minStdZ = Double.MAX_VALUE;
-
-            int numOfTimeWindow = 0;
-            for (int i = 0; i < tempChunkLogs.size(); i++) {
-              indexTimeWin++;
-              expIdSize --;
-              GyroscopeLog log = (GyroscopeLog) tempChunkLogs.get(i);
-              // calculate sum, squared sum values per each coordinate
-              avgX += log.x/maxGyX ;
-              avgSqX += Math.pow(log.x/maxGyX, 2);
-              avgY += log.y/maxGyY ;
-              avgSqY += Math.pow(log.y/maxGyY, 2);
-              avgZ += log.z/maxGyZ ;
-              avgSqZ += Math.pow(log.z/maxGyZ, 2);
-              // calculate Std in timewindow
-
-              if(indexTimeWin == timeWindowSize){
-                numOfTimeWindow++;
-                double currentStdX = Math.sqrt(avgSqX/timeWindowSize - Math.pow(avgX/timeWindowSize, 2));
-                avgStdX += currentStdX;
-                if(currentStdX>maxStdX) maxStdX = currentStdX;
-                if(minStdX > currentStdX) minStdX = currentStdX;
-                double currentStdY = Math.sqrt(avgSqY/timeWindowSize - Math.pow(avgY/timeWindowSize, 2));
-                avgStdY += currentStdY;
-                if(currentStdY>maxStdY) maxStdY = currentStdY;
-                if(minStdY > currentStdY) minStdY = currentStdY;
-                double currentStdZ = Math.sqrt(avgSqZ/timeWindowSize - Math.pow(avgZ/timeWindowSize, 2));
-                avgStdZ += currentStdZ;
-                if(currentStdZ>maxStdZ) maxStdZ = currentStdZ;
-                if(minStdZ > currentStdZ) minStdZ = currentStdZ;
-                // initialize
-                indexTimeWin = 0;
-                avgX = 0.0;
-                avgSqX =0.0;
-                avgY = 0.0;
-                avgSqY =0.0;
-                avgZ = 0.0;
-                avgSqZ =0.0;
-                if (expIdSize  < timeWindowSize) break;
-              }
-            }
-//							System.out.println(profileId+"\t"+ expId+
-//									"\t"+ avgStdX/numOfTimeWindow+"\t" + maxStdX + "\t" + minStdX +
-//									"\t"+ avgStdY/numOfTimeWindow+"\t" + maxStdY + "\t" + minStdY +
-//									"\t"+ avgStdZ/numOfTimeWindow+"\t" + maxStdZ + "\t" + minStdZ);
-            values[exp][0] = avgStdX/numOfTimeWindow;
-            values[exp][1] = maxStdX;
-            values[exp][2] = minStdX;
-            values[exp][3] = avgStdY/numOfTimeWindow;
-            values[exp][4] = maxStdY;
-            values[exp][5] = minStdY;
-            values[exp][6] = avgStdZ/numOfTimeWindow;
-            values[exp][7] = maxStdZ;
-            values[exp][8] = minStdZ;
-          }
-        }
-        feature.setValues_Gyroscope(tableName, values);
-      } else if(tableName.equals("RotationVectorSensorProbe")){
-        // First loop - evaluate maxCos, maxSinX, maxSinY, maxSinZ
-        for (int j = 0; j < expIds.size(); j++) {
-          int expId = expIds.get(j);
-          ArrayList<BasicLog> tempChunkLogs =
-            DBReader.readLog_customized(tableName,
-            "where profile_id = " + profileId + " and expId = " + expId, test);
-          for (int i = 0; i < tempChunkLogs.size(); i++) {
-            RotationVectorLog log = (RotationVectorLog) tempChunkLogs.get(i);
-            if(log.cosThetaOver2 > maxCos) maxCos = log.cosThetaOver2;
-            if(log.xSinThetaOver2 > maxSinX) maxSinX = log.xSinThetaOver2;
-            if(log.ySinThetaOver2 > maxSinY) maxSinY = log.ySinThetaOver2;
-            if(log.zSinThetaOver2 > maxSinZ) maxSinZ = log.zSinThetaOver2;
-          }
-        }
-        double[][] values = new double[expIds.size()][12];
-
-        for (int exp = 0; exp < expIds.size(); exp++) {
-          int expId = expIds.get(exp);
-          ArrayList<BasicLog> tempChunkLogs =
-            DBReader.readLog_customized(tableName,
-            "where profile_id = " + profileId + " and expId = " + expId, test);
-          int expIdSize = tempChunkLogs.size();
-          if( expIdSize >= timeWindowSize){
-            int indexTimeWin = 0;
-            // initialize variables used in timewindow
-            double avgC = 0.0;
-            double avgSqC = 0.0;
-            double avgX = 0.0;
-            double avgSqX = 0.0;
-            double avgY = 0.0;
-            double avgSqY = 0.0;
-            double avgZ = 0.0;
-            double avgSqZ = 0.0;
-
-            // initialize variables used in expId
-            double avgStdC =0.0;
-            double maxStdC = 0.0;
-            double minStdC = Double.MAX_VALUE;
-            double avgStdX =0.0;
-            double maxStdX = 0.0;
-            double minStdX = Double.MAX_VALUE;
-            double avgStdY =0.0;
-            double maxStdY = 0.0;
-            double minStdY = Double.MAX_VALUE;
-            double avgStdZ =0.0;
-            double maxStdZ = 0.0;
-            double minStdZ = Double.MAX_VALUE;
-
-            int numOfTimeWindow = 0;
-            for (int i = 0; i < tempChunkLogs.size(); i++) {
-              indexTimeWin++;
-              expIdSize --;
-              RotationVectorLog log = (RotationVectorLog) tempChunkLogs.get(i);
-
-              // calculate sum, squared sum values per each coordinate
-              avgC += log.cosThetaOver2/maxCos;
-              avgSqC += Math.pow(log.cosThetaOver2/maxCos, 2);
-              avgX += log.xSinThetaOver2/maxSinX;
-              avgSqX += Math.pow(log.xSinThetaOver2/maxSinX, 2);
-              avgY += log.ySinThetaOver2/maxSinY;
-              avgSqY += Math.pow(log.ySinThetaOver2/maxSinY, 2);
-              avgZ += log.zSinThetaOver2/maxSinZ;
-              avgSqZ += Math.pow(log.zSinThetaOver2/maxSinZ, 2);
-
-              // calculate Std in timewindow
-              if (indexTimeWin == timeWindowSize) {
-                numOfTimeWindow++;
-                double currentStdC = Math.sqrt(avgSqC/timeWindowSize - Math.pow(avgC/timeWindowSize, 2));
-                avgStdC += currentStdC;
-                if (currentStdC>maxStdC) maxStdC = currentStdC;
-                if (minStdC > currentStdC) minStdC = currentStdC;
-
-                double currentStdX = Math.sqrt(avgSqX/timeWindowSize - Math.pow(avgX/timeWindowSize, 2));
-                avgStdX += currentStdX;
-                if (currentStdX>maxStdX) maxStdX = currentStdX;
-                if (minStdX > currentStdX) minStdX = currentStdX;
-
-                double currentStdY = Math.sqrt(avgSqY/timeWindowSize - Math.pow(avgY/timeWindowSize, 2));
-                avgStdY += currentStdY;
-                if (currentStdY>maxStdY) maxStdY = currentStdY;
-                if (minStdY > currentStdY) minStdY = currentStdY;
-
-                double currentStdZ = Math.sqrt(avgSqZ/timeWindowSize - Math.pow(avgZ/timeWindowSize, 2));
-                avgStdZ += currentStdZ;
-                if (currentStdZ>maxStdZ) maxStdZ = currentStdZ;
-                if (minStdZ > currentStdZ) minStdZ = currentStdZ;
-
-                // initialize
-                indexTimeWin = 0;
-                avgC = 0.0;
-                avgSqC =0.0;
-                avgX = 0.0;
-                avgSqX =0.0;
-                avgY = 0.0;
-                avgSqY =0.0;
-                avgZ = 0.0;
-                avgSqZ =0.0;
-                if (expIdSize  < timeWindowSize) break;
-              }
-            }
-//							System.out.println(profileId+"\t"+ expId+
-//									"\t"+ avgStdC/numOfTimeWindow+"\t" + maxStdC + "\t" + minStdC +
-//									"\t"+ avgStdX/numOfTimeWindow+"\t" + maxStdX + "\t" + minStdX +
-//									"\t"+ avgStdY/numOfTimeWindow+"\t" + maxStdY + "\t" + minStdY +
-//									"\t"+ avgStdZ/numOfTimeWindow+"\t" + maxStdZ + "\t" + minStdZ);
-            values[exp][0] = avgStdC/numOfTimeWindow;
-            values[exp][1] = maxStdC;
-            values[exp][2] = minStdC;
-            values[exp][3] = avgStdX/numOfTimeWindow;
-            values[exp][4] = maxStdX;
-            values[exp][5] = minStdX;
-            values[exp][6] = avgStdY/numOfTimeWindow;
-            values[exp][7] = maxStdY;
-            values[exp][8] = minStdY;
-            values[exp][9] = avgStdZ/numOfTimeWindow;
-            values[exp][10] = maxStdZ;
-            values[exp][11] = minStdZ;
-          }
-        }
-        feature.setValues_RotationVector(tableName, values);
       }
     }
 
