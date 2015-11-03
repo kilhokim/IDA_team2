@@ -16,15 +16,15 @@ public class TestMain {
 
     public static void main(String[] args) {
         // Conduct training with non-sensor data
-        NormalDataSetGenerator normalDataSetGen = new NormalDataSetGenerator();
-        HashMap<Integer, Feature> normalTrUsers = normalDataSetGen.generateDataSet(false);
-        // IMPORTANT: Re-initialize nullFeatureProfileIdMap
-        normalDataSetGen.nullFeatureProfileIdMap = new HashMap<String, List<Integer>>();
-        for (Integer i : normalTrUsers.keySet()) {
-            System.out.println(i + ": " + normalTrUsers.get(i));
-        }
-        Instances normalTrainingSet = normalDataSetGen.transformToInstances(normalTrUsers);
-        normalTrainingSet.setClassIndex(normalTrainingSet.numAttributes() - 1);
+//        NormalDataSetGenerator normalDataSetGen = new NormalDataSetGenerator();
+//        HashMap<Integer, Feature> normalTrUsers = normalDataSetGen.generateDataSet(false);
+//        // IMPORTANT: Re-initialize nullFeatureProfileIdMap
+//        normalDataSetGen.nullFeatureProfileIdMap = new HashMap<String, List<Integer>>();
+//        for (Integer i : normalTrUsers.keySet()) {
+//            System.out.println(i + ": " + normalTrUsers.get(i));
+//        }
+//        Instances normalTrainingSet = normalDataSetGen.transformToInstances(normalTrUsers);
+//        normalTrainingSet.setClassIndex(normalTrainingSet.numAttributes() - 1);
 
         // Conduct training with sensor data
         SensorDataSetGenerator sensorDataSetGen = new SensorDataSetGenerator();
@@ -37,11 +37,11 @@ public class TestMain {
 
 
         // Fit model
-        Classifier normalCls = Classifiers.getClassifier("Logistic");
+//        Classifier normalCls = Classifiers.getClassifier("Logistic");
         Classifier sensorCls = Classifiers.getClassifier("Logistic");
         // Classifier cls = Classifiers.getClassifier("NaiveBayes");
         try {
-            normalCls.buildClassifier(normalTrainingSet);
+//            normalCls.buildClassifier(normalTrainingSet);
             sensorCls.buildClassifier(sensorTrainingSet);
         } catch (Exception e) {
             e.printStackTrace();
@@ -49,7 +49,7 @@ public class TestMain {
 
         ////////////////////////////////////////////////////////////////////////////////////////////////
         //////////////////////////////////    Should be included!     //////////////////////////////////
-        ProjectEvaluator.runTest(normalDataSetGen, normalCls);
+        ProjectEvaluator.runTest(sensorDataSetGen, sensorCls);
         ////////////////////////////////////////////////////////////////////////////////////////////////
     }
 }

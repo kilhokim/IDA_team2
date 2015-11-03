@@ -540,13 +540,13 @@ public class DBReader {
     }
 
 
-    public static String readLabel(String labelName, int profileId, boolean test) {
-        String label = null;
+    public static double readLabel(String labelName, int profileId, boolean test) {
+        double label = 0.0;
         ResultSet rs = DBConn.execQuery("select " + labelName +
                 " from profile_info where profile_id = " + profileId, test);
         try {
             rs.next();
-            label = "" + rs.getString(labelName);
+            label =  rs.getDouble(labelName);
             rs.close();
         } catch (SQLException e) {
             e.printStackTrace();

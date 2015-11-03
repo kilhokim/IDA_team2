@@ -173,7 +173,7 @@ public class NormalDataSetGenerator implements DataSetGenerator {
     if (batchProcess) {
       ArrayList<Integer> profileIds = DBReader.readProfileIds(test);
       for (int profileId : profileIds) {
-        String tempUserLabel = DBReader.readLabel(labelName, profileId, test);
+        Double tempUserLabel = DBReader.readLabel(labelName, profileId, test);
         Feature tempFeature = generateFeature_batchProcess(tableNames, profileId, tempUserLabel, test);
         users.put(profileId, tempFeature);
       }
@@ -196,7 +196,7 @@ public class NormalDataSetGenerator implements DataSetGenerator {
         }
       }
       for (int profileId : wholeLogs.keySet()) {
-        String tempUserLabel = DBReader.readLabel(labelName, profileId, test);
+        Double tempUserLabel = DBReader.readLabel(labelName, profileId, test);
         users.put(profileId, generateFeature(wholeLogs.get(profileId), tempUserLabel));
       }
     }
@@ -209,7 +209,7 @@ public class NormalDataSetGenerator implements DataSetGenerator {
   }
   ////////////////////////////////////////////////////////////////////////////////////////////////
 
-  public Feature generateFeature(HashMap<String, ArrayList<BasicLog>> userLogs, String label) {
+  public Feature generateFeature(HashMap<String, ArrayList<BasicLog>> userLogs, Double label) {
     Feature feature = new NormalFeature();
     feature.setLabel(label);
     for (String tableName : userLogs.keySet()) {
@@ -236,7 +236,7 @@ public class NormalDataSetGenerator implements DataSetGenerator {
     return feature;
   }
 
-  public Feature generateFeature_batchProcess(ArrayList<String> tableNames, int profileId, String label, boolean test) {
+  public Feature generateFeature_batchProcess(ArrayList<String> tableNames, int profileId, Double label, boolean test) {
     NormalFeature feature = new NormalFeature();
     feature.setLabel(label);
     System.out.println("profileId=" + profileId + ", feature=" + feature.numSmss);
@@ -712,7 +712,7 @@ public class NormalDataSetGenerator implements DataSetGenerator {
       // Put the average value for missing features
       for (int i = 0; i < nullProfileIds.size(); i++) {
         int nullProfileId = nullProfileIds.get(i);
-        String nullProfileIdUserLabel =
+        Double nullProfileIdUserLabel =
                 DBReader.readLabel(labelName, nullProfileId, test);
         NormalFeature avgFeature = (NormalFeature)users.get(nullProfileId);
         printFeatureValue(avgValues);

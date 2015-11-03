@@ -29,8 +29,8 @@ public interface DataSetGenerator {
     public HashMap<Integer, Feature> generateDataSet(boolean test);
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public Feature generateFeature(HashMap<String, ArrayList<BasicLog>> userLogs, String label);
+    public Feature generateFeature(HashMap<String, ArrayList<BasicLog>> userLogs, Double label);
 
-    public Feature generateFeature_batchProcess(ArrayList<String> tableNames, int profileId, String label, boolean test);
+    public Feature generateFeature_batchProcess(ArrayList<String> tableNames, int profileId, Double label, boolean test);
     ////////////////////////////////////////////////////////////////////////////////////////////////
 }

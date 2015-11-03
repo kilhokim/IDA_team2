@@ -97,7 +97,7 @@ public class NormalFeature implements Feature {
   public double avgCallInterval;
 
 
-  public String label;
+  public double label;
 
   String[] numericAtts = {
           "numBooksReference","numBusiness","numComics","numCommuncation","numEducation","numEntertainment","numFinanace","numHealthFitness","numLibrariesDemo","numLifestyle","numLiveWallpaper","numMediaVideo","numMedical","numMusicAudio","numNewsMagazines","numPersonalization","numPhotography","numProductivity","numShopping","numSocial","numSports","numTools","numTransportation","numTravelLocal","numWeather","numWidgets","numAction","numAdventure","numArcade","numBoard","numCard","numCasino","numCasual","numEducational","numMusic","numPuzzle","numRacing","numRolePlaying","numSimulation",/*"numSports",*/"numStrategy","numTrivia","numWord","numAges5Under","numAges6_8","numAges9Up","numPopularCharacters","numActionAdventure","numBrainGames","numCreativity",/*"numFamilyEducation",*/"numMusicVideo","numPretendPlay",
@@ -257,7 +257,7 @@ public class NormalFeature implements Feature {
   }
 
 
-  public void setLabel(String label){
+  public void setLabel(Double label){
     this.label = label;
   }
 
@@ -288,4 +288,5 @@ public class NormalFeature implements Feature {
     }
     return sb.toString();
   }
+
 }

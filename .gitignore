@@ -48,3 +48,4 @@ crashlytics-build.properties
 dataSet/
 *.arff
 *.csv
+/bin

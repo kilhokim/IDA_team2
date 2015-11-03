@@ -11,6 +11,6 @@ public interface Feature {
 
     public Field[] getNominalAttributes();
 
-    public void setLabel(String label);
+    public void setLabel(Double label);
 
 }
