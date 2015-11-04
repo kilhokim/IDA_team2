@@ -263,6 +263,9 @@ public class SensorDataSetGenerator implements DataSetGenerator {
 					// We abandon the logs which don't fit in the single time window
 					numAccInstances += expIdSize / timeWindowSize;
 				}
+				System.out.println("********************************************");
+				System.out.println("profileId: " + profileId);
+				System.out.println("numAccInstances: " + numAccInstances);
 
 				feature.setNumAccInstances(numAccInstances);
 				double[][] values = new double[numAccInstances][43];
@@ -310,6 +313,10 @@ public class SensorDataSetGenerator implements DataSetGenerator {
 							int[] peakIndexList_x = new int[timeWindowSize];
 							int[] peakIndexList_y = new int[timeWindowSize];
 							int[] peakIndexList_z = new int[timeWindowSize];
+
+							/**
+							 * FIRST ITERATION IN A WINDOW OF SIZE 50
+							 */
 							for (int l = 0; l < timeWindowSize; l++) {
 								sum_x += x_logs[l]; sum_y += y_logs[l]; sum_z += z_logs[l];
 								sum_x_sq += x_logs[l]*x_logs[l];
@@ -335,6 +342,7 @@ public class SensorDataSetGenerator implements DataSetGenerator {
 							avg_x = sum_x/timeWindowSize;
 							avg_y = sum_y/timeWindowSize;
 							avg_z = sum_z/timeWindowSize;
+
 							values[valueIdx][0] = avg_x; // avg_x
 							values[valueIdx][1] = avg_y; // avg_y
 							values[valueIdx][2] = avg_z; // avg_z
@@ -351,6 +359,18 @@ public class SensorDataSetGenerator implements DataSetGenerator {
 							int foundPeakNum_x = 1;
 							int foundPeakNum_y = 1;
 							int foundPeakNum_z = 1;
+
+							// Bin distributions for x, y, z
+							double[] dist_x = new double[10];
+							double interval_x = (max_x - min_x)/10;
+							double[] dist_y = new double[10];
+							double interval_y = (max_y - min_y)/10;
+							double[] dist_z = new double[10];
+							double interval_z = (max_z - min_z)/10;
+
+							/**
+							 * SECOND ITERATION IN A WINDOW OF SIZE 50
+							 */
 							for (int l = 0; l < timeWindowSize; l++) {
 								sum_diff_x += Math.abs(x_logs[l] - avg_x);
 								sum_diff_y += Math.abs(y_logs[l] - avg_y);
@@ -406,15 +426,53 @@ public class SensorDataSetGenerator implements DataSetGenerator {
 										}
 									}
 								}
+
+								// Calculate bin distributions
+								double log_x = x_logs[l] - min_x;
+								if (interval_x*0 <= log_x && log_x < interval_x*1) dist_x[0] += 1;
+								else if (interval_x*1 <= log_x && log_x < interval_x*2) dist_x[1] += 1;
+								else if (interval_x*2 <= log_x && log_x < interval_x*3) dist_x[2] += 1;
+								else if (interval_x*3 <= log_x && log_x < interval_x*4) dist_x[3] += 1;
+								else if (interval_x*4 <= log_x && log_x < interval_x*5) dist_x[4] += 1;
+								else if (interval_x*5 <= log_x && log_x < interval_x*6) dist_x[5] += 1;
+								else if (interval_x*6 <= log_x && log_x < interval_x*7) dist_x[6] += 1;
+								else if (interval_x*7 <= log_x && log_x < interval_x*8) dist_x[7] += 1;
+								else if (interval_x*8 <= log_x && log_x < interval_x*9) dist_x[8] += 1;
+								else dist_x[9] += 1;
+
+								double log_y = y_logs[l] - min_y;
+								if (interval_y*0 <= log_y && log_y < interval_y*1) dist_y[0] += 1;
+								else if (interval_y*1 <= log_y && log_y < interval_y*2) dist_y[1] += 1;
+								else if (interval_y*2 <= log_y && log_y < interval_y*3) dist_y[2] += 1;
+								else if (interval_y*3 <= log_y && log_y < interval_y*4) dist_y[3] += 1;
+								else if (interval_y*4 <= log_y && log_y < interval_y*5) dist_y[4] += 1;
+								else if (interval_y*5 <= log_y && log_y < interval_y*6) dist_y[5] += 1;
+								else if (interval_y*6 <= log_y && log_y < interval_y*7) dist_y[6] += 1;
+								else if (interval_y*7 <= log_y && log_y < interval_y*8) dist_y[7] += 1;
+								else if (interval_y*8 <= log_y && log_y < interval_y*9) dist_y[8] += 1;
+								else dist_y[9] += 1;
+
+								double log_z = z_logs[l] - min_z;
+								if (interval_z*0 <= log_z && log_z < interval_z*1) dist_z[0] += 1;
+								else if (interval_z*1 <= log_z && log_z < interval_z*2) dist_z[1] += 1;
+								else if (interval_z*2 <= log_z && log_z < interval_z*3) dist_z[2] += 1;
+								else if (interval_z*3 <= log_z && log_z < interval_z*4) dist_z[3] += 1;
+								else if (interval_z*4 <= log_z && log_z < interval_z*5) dist_z[4] += 1;
+								else if (interval_z*5 <= log_z && log_z < interval_z*6) dist_z[5] += 1;
+								else if (interval_z*6 <= log_z && log_z < interval_z*7) dist_z[6] += 1;
+								else if (interval_z*7 <= log_z && log_z < interval_z*8) dist_z[7] += 1;
+								else if (interval_z*8 <= log_z && log_z < interval_z*9) dist_z[8] += 1;
+								else dist_z[9] += 1;
 							}
 							values[valueIdx][6] = sum_diff_x/timeWindowSize; // avg_diff_x
 							values[valueIdx][7] = sum_diff_y/timeWindowSize; // avg_diff_y
 							values[valueIdx][8] = sum_diff_z/timeWindowSize; // avg_diff_z
 							values[valueIdx][9] = Math.sqrt(sum_acc)/timeWindowSize; // avg_acc
 
+							/**
+							 * THIRD++ ITERATION IN A WINDOW OF SIZE 50
+							 */
 							// Loop for searching at least three peaks
-
-
 							while(foundPeakNum_x < 3 || foundPeakNum_y < 3 || foundPeakNum_z < 3 ){
 								delta++;
 								for (int l = 0; l < timeWindowSize; l++) {
@@ -499,9 +557,6 @@ public class SensorDataSetGenerator implements DataSetGenerator {
 							values[valueIdx][11] = time_btwn_peaks_y / (foundPeakNum_y-1);
 							values[valueIdx][12] = time_btwn_peaks_z / (foundPeakNum_z-1);
 
-							double[] dist_x = getBinDist(x_logs, min_x, max_x);
-							double[] dist_y = getBinDist(y_logs, min_y, max_y);
-							double[] dist_z = getBinDist(z_logs, min_z, max_z);
 							for (int j = 13; j < 13+10; j++)
 								values[valueIdx][j] = dist_x[j-13];
 							for (int j = 23; j < 23+10; j++)
@@ -541,7 +596,7 @@ public class SensorDataSetGenerator implements DataSetGenerator {
 				// Print first 10 instances as samples
 				for (int inst = 0; inst < 10; inst++) {
 					for (int attr = 0; attr < values[inst].length; attr++) {
-						System.out.print(values[valueIdx] + " ");
+						System.out.print(values[inst][attr] + " ");
 					}
 					System.out.print("\n");
 				}
@@ -552,28 +607,28 @@ public class SensorDataSetGenerator implements DataSetGenerator {
 		return feature;
 	}
 
-	public static double[] getBinDist(double[] logs, double min, double max) {
-		double[] dist = new double[10];
-		double interval = (max - min) / 10;
-		for (int l = 0; l < logs.length; l++) {
-			double log = logs[l] - min;
-			if (interval*0 <= log && log < interval*1) dist[0] += 1;
-			else if (interval*1 <= log && log < interval*2) dist[1] += 1;
-			else if (interval*2 <= log && log < interval*3) dist[2] += 1;
-			else if (interval*3 <= log && log < interval*4) dist[3] += 1;
-			else if (interval*4 <= log && log < interval*5) dist[4] += 1;
-			else if (interval*5 <= log && log < interval*6) dist[5] += 1;
-			else if (interval*6 <= log && log < interval*7) dist[6] += 1;
-			else if (interval*7 <= log && log < interval*8) dist[7] += 1;
-			else if (interval*8 <= log && log < interval*9) dist[8] += 1;
-			else dist[9] += 1;
-		}
-
-		for (int i = 0; i < dist.length; i++) {
-			dist[i] /= logs.length;
-		}
-
-		return dist;
-	}
+//	public static double[] getBinDist(double[] logs, double min, double max) {
+//		double[] dist = new double[10];
+//		double interval = (max - min) / 10;
+//		for (int l = 0; l < logs.length; l++) {
+//			double log = logs[l] - min;
+//			if (interval*0 <= log && log < interval*1) dist[0] += 1;
+//			else if (interval*1 <= log && log < interval*2) dist[1] += 1;
+//			else if (interval*2 <= log && log < interval*3) dist[2] += 1;
+//			else if (interval*3 <= log && log < interval*4) dist[3] += 1;
+//			else if (interval*4 <= log && log < interval*5) dist[4] += 1;
+//			else if (interval*5 <= log && log < interval*6) dist[5] += 1;
+//			else if (interval*6 <= log && log < interval*7) dist[6] += 1;
+//			else if (interval*7 <= log && log < interval*8) dist[7] += 1;
+//			else if (interval*8 <= log && log < interval*9) dist[8] += 1;
+//			else dist[9] += 1;
+//		}
+//
+//		for (int i = 0; i < dist.length; i++) {
+//			dist[i] /= logs.length;
+//		}
+//
+//		return dist;
+//	}
 	////////////////////////////////////////////////////////////////////////////////////////////////
 }

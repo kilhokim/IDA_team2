@@ -2,6 +2,7 @@ package project_team2;
 
 import operator.ProjectEvaluator;
 import structure.weka.Classifiers;
+import weka.classifiers.functions.LinearRegression;
 import weka.classifiers.Classifier;
 import weka.core.Instances;
 
@@ -39,9 +40,12 @@ public class TestMain {
 
         // Fit model
 //        Classifier normalCls = Classifiers.getClassifier("Logistic");
-        Classifier sensorCls = Classifiers.getClassifier("Logistic");
+//        Classifier sensorCls = Classifiers.getClassifier("Logistic");
         // Classifier cls = Classifiers.getClassifier("NaiveBayes");
+        Classifier sensorCls = new LinearRegression();
         try {
+            ((LinearRegression)sensorCls).setOptions(
+                    weka.core.Utils.splitOptions("-S 0 -R 1.0E-8 -num-decimal-places 4"));
 //            normalCls.buildClassifier(normalTrainingSet);
             sensorCls.buildClassifier(sensorTrainingSet);
         } catch (Exception e) {
