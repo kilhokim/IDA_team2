@@ -187,6 +187,7 @@ public class SensorDataSetGenerator implements DataSetGenerator {
 				if (users.size() > 5) {
 					break;
 				}
+//				if (profileId < 4) continue;
 				Double tempUserLabel = DBReader.readLabel(labelName, profileId, sourceIndex);
 				Feature tempFeature = generateFeature_batchProcess(tableNames, profileId, tempUserLabel, sourceIndex);
 				users.put(profileId, tempFeature);
@@ -387,33 +388,54 @@ public class SensorDataSetGenerator implements DataSetGenerator {
 								sum_acc += Math.sqrt(x_logs[l]*x_logs[l] + y_logs[l]*y_logs[l] +
 										z_logs[l]*z_logs[l]);
 
-                int sign_x = (int)Math.signum(max_x);
-                if(x_logs[l] > max_x * (1-sign_x*delta*deltaThresh)){
-                  if(peakIndexList_x[l] != 1){
-                    peakIndexList_x[l] =1;
-                    foundPeakNum_x++;
-//                      System.out.println("foundPeakNum_x=" + foundPeakNum_x +
-//                                         ", peakIndexList_x["+l+"]=1");
-                  }
-                }
-                int sign_y = (int)Math.signum(max_y);
-                if(y_logs[l] > max_y * (1-sign_y*delta*deltaThresh)){
-                  if(peakIndexList_y[l] != 1){
-                    peakIndexList_y[l] =1;
-                    foundPeakNum_y++;
-//                      System.out.println("foundPeakNum_y=" + foundPeakNum_y +
-//                                         ", peakIndexList_y["+l+"]=1");
-                  }
-                }
-                int sign_z = (int)Math.signum(max_z);
-                if(z_logs[l] > max_z * (1-sign_z*delta*deltaThresh)){
-                  if(peakIndexList_z[l] != 1){
-                    peakIndexList_z[l] =1;
-                    foundPeakNum_z++;
-//                      System.out.println("foundPeakNum_z=" + foundPeakNum_z +
-//                                         ", peakIndexList_z["+l+"]=1");
-                  }
-                }
+//                int sign_x = (int)Math.signum(max_x);
+//                if(x_logs[l] > max_x * (1-sign_x*delta*deltaThresh)){
+//                  if(peakIndexList_x[l] != 1){
+//                    peakIndexList_x[l] =1;
+//                    foundPeakNum_x++;
+////                      System.out.println("foundPeakNum_x=" + foundPeakNum_x +
+////                                         ", peakIndexList_x["+l+"]=1");
+//                  }
+//                }
+//                int sign_y = (int)Math.signum(max_y);
+//                if(y_logs[l] > max_y * (1-sign_y*delta*deltaThresh)){
+//                  if(peakIndexList_y[l] != 1){
+//                    peakIndexList_y[l] =1;
+//                    foundPeakNum_y++;
+////                      System.out.println("foundPeakNum_y=" + foundPeakNum_y +
+////                                         ", peakIndexList_y["+l+"]=1");
+//                  }
+//                }
+//                int sign_z = (int)Math.signum(max_z);
+//                if(z_logs[l] > max_z * (1-sign_z*delta*deltaThresh)){
+//                  if(peakIndexList_z[l] != 1){
+//                    peakIndexList_z[l] =1;
+//                    foundPeakNum_z++;
+////                      System.out.println("foundPeakNum_z=" + foundPeakNum_z +
+////                                         ", peakIndexList_z["+l+"]=1");
+//                  }
+//                }
+								if (x_logs[l] > max_x - (max_x-min_x)*delta*deltaThresh) {
+									peakIndexList_x[l] = 1;
+									foundPeakNum_x++;
+//									if (valueIdx % 100 == 0)
+										System.out.println("foundPeakNum_x=" + foundPeakNum_x +
+														", peakIndexList_x["+l+"]=1");
+								}
+								if (y_logs[l] > max_y - (max_y-min_y)*delta*deltaThresh) {
+									peakIndexList_y[l] = 1;
+									foundPeakNum_y++;
+//									if (valueIdx % 100 == 0)
+										System.out.println("foundPeakNum_y=" + foundPeakNum_y +
+														", peakIndexList_y["+l+"]=1");
+								}
+								if (z_logs[l] > max_z - (max_z-min_z)*delta*deltaThresh) {
+									peakIndexList_z[l] = 1;
+									foundPeakNum_z++;
+//									if (valueIdx % 100 == 0)
+										System.out.println("foundPeakNum_z=" + foundPeakNum_z +
+														", peakIndexList_z["+l+"]=1");
+								}
 
 								// Calculate bin distributions
 								double log_x = x_logs[l] - min_x;
@@ -469,56 +491,56 @@ public class SensorDataSetGenerator implements DataSetGenerator {
 							// Loop for searching at least three peaks
 							while (foundPeakNum_x < 3 || foundPeakNum_y < 3 || foundPeakNum_z < 3 ) {
 								delta++;
-//								System.out.println("max_x: "+ max_x+ " " +foundPeakNum_x + " " + foundPeakNum_y + " " + foundPeakNum_z);
+								System.out.println("max_x: "+ max_x+ " " +foundPeakNum_x + " " + foundPeakNum_y + " " + foundPeakNum_z);
 								for (int l = 0; l < timeWindowSize; l++) {
-									int sign_x = (int)Math.signum(max_x);
-                  if(x_logs[l] > max_x * (1-sign_x*delta*deltaThresh) && foundPeakNum_x < 3){
-                    if(peakIndexList_x[l] != 1){
-                      peakIndexList_x[l] =1;
-                      foundPeakNum_x++;
+//									int sign_x = (int)Math.signum(max_x);
+//                  if(x_logs[l] > max_x * (1-sign_x*delta*deltaThresh) && foundPeakNum_x < 3){
+//                    if(peakIndexList_x[l] != 1){
+//                      peakIndexList_x[l] =1;
+//                      foundPeakNum_x++;
 //                      System.out.println("foundPeakNum_x=" + foundPeakNum_x +
 //                                         ", peakIndexList_x["+l+"]=1");
-                    }
-                  }
-									int sign_y = (int)Math.signum(max_y);
-                  if(y_logs[l] > max_y * (1-sign_y*delta*deltaThresh) && foundPeakNum_y < 3){
-                    if(peakIndexList_y[l] != 1){
-                      peakIndexList_y[l] =1;
-                      foundPeakNum_y++;
+//                    }
+//                  }
+//									int sign_y = (int)Math.signum(max_y);
+//                  if(y_logs[l] > max_y * (1-sign_y*delta*deltaThresh) && foundPeakNum_y < 3){
+//                    if(peakIndexList_y[l] != 1){
+//                      peakIndexList_y[l] =1;
+//                      foundPeakNum_y++;
 //                      System.out.println("foundPeakNum_y=" + foundPeakNum_y +
 //                                         ", peakIndexList_y["+l+"]=1");
-                    }
-                  }
-									int sign_z = (int)Math.signum(max_z);
-                  if(z_logs[l] > max_z * (1-sign_z*delta*deltaThresh) && foundPeakNum_z < 3){
-                    if(peakIndexList_z[l] != 1){
-                      peakIndexList_z[l] =1;
-                      foundPeakNum_z++;
+//                    }
+//                  }
+//									int sign_z = (int)Math.signum(max_z);
+//                  if(z_logs[l] > max_z * (1-sign_z*delta*deltaThresh) && foundPeakNum_z < 3){
+//                    if(peakIndexList_z[l] != 1){
+//                      peakIndexList_z[l] =1;
+//                      foundPeakNum_z++;
 //                      System.out.println("foundPeakNum_z=" + foundPeakNum_z +
 //                                         ", peakIndexList_z["+l+"]=1");
-                    }
-                  }
-//									if (x_logs[l] > max_x - (max_x-min_x)*delta*deltaThresh && foundPeakNum_x < 3) {
-//										peakIndexList_x[l] = 1;
-//										foundPeakNum_x++;
-//										if (valueIdx % 100 == 0)
-//                      System.out.println("foundPeakNum_x=" + foundPeakNum_x +
-//                                         ", peakIndexList_x["+l+"]=1");
-//									}
-//									if (y_logs[l] > max_y - (max_y-min_y)*delta*deltaThresh && foundPeakNum_y < 3) {
-//										peakIndexList_y[l] = 1;
-//										foundPeakNum_y++;
-//										if (valueIdx % 100 == 0)
-//                      System.out.println("foundPeakNum_y=" + foundPeakNum_y +
-//                                         ", peakIndexList_y["+l+"]=1");
-//									}
-//									if (z_logs[l] > max_z - (max_z-min_z)*delta*deltaThresh && foundPeakNum_z < 3) {
-//										peakIndexList_z[l] = 1;
-//										foundPeakNum_z++;
-//										if (valueIdx % 100 == 0)
-//                      System.out.println("foundPeakNum_z=" + foundPeakNum_z +
-//                                         ", peakIndexList_z["+l+"]=1");
-//									}
+//                    }
+//                  }
+									if (x_logs[l] > max_x - (max_x-min_x)*delta*deltaThresh && foundPeakNum_x < 3) {
+										peakIndexList_x[l] = 1;
+										foundPeakNum_x++;
+										if (valueIdx % 100 == 0)
+                      System.out.println("foundPeakNum_x=" + foundPeakNum_x +
+                                         ", peakIndexList_x["+l+"]=1");
+									}
+									if (y_logs[l] > max_y - (max_y-min_y)*delta*deltaThresh && foundPeakNum_y < 3) {
+										peakIndexList_y[l] = 1;
+										foundPeakNum_y++;
+										if (valueIdx % 100 == 0)
+                      System.out.println("foundPeakNum_y=" + foundPeakNum_y +
+                                         ", peakIndexList_y["+l+"]=1");
+									}
+									if (z_logs[l] > max_z - (max_z-min_z)*delta*deltaThresh && foundPeakNum_z < 3) {
+										peakIndexList_z[l] = 1;
+										foundPeakNum_z++;
+										if (valueIdx % 100 == 0)
+                      System.out.println("foundPeakNum_z=" + foundPeakNum_z +
+                                         ", peakIndexList_z["+l+"]=1");
+									}
 								}
 //								System.out.println("delta " + delta + " x: "+ foundPeakNum_x + " y: " + foundPeakNum_y + " z: "+ foundPeakNum_z);
 							}
