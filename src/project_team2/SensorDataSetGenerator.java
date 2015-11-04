@@ -183,6 +183,10 @@ public class SensorDataSetGenerator implements DataSetGenerator {
 		if (batchProcess) {
 			ArrayList<Integer> profileIds = DBReader.readProfileIds(sourceIndex);
 			for (int profileId : profileIds) {
+				// FIXME:
+				if (users.size() > 5) {
+					break;
+				}
 				Double tempUserLabel = DBReader.readLabel(labelName, profileId, sourceIndex);
 				Feature tempFeature = generateFeature_batchProcess(tableNames, profileId, tempUserLabel, sourceIndex);
 				users.put(profileId, tempFeature);
@@ -259,8 +263,9 @@ public class SensorDataSetGenerator implements DataSetGenerator {
 					int expId = expIds.get(exp);
 					ArrayList<BasicLog> tempChunkLogs =
 							DBReader.readLog_customized(tableName,
-//									"where profile_id = " + profileId + " and expId = " + expId + " limit 500", sourceIndex);
-									"where profile_id = " + profileId + " and expId = " + expId, sourceIndex);
+                  // FIXME:
+									"where profile_id = " + profileId + " and expId = " + expId + " limit 1000", sourceIndex);
+//									"where profile_id = " + profileId + " and expId = " + expId, sourceIndex);
 					int expIdSize = tempChunkLogs.size();
 
 					// We abandon the logs which don't fit in the single time window
@@ -277,8 +282,9 @@ public class SensorDataSetGenerator implements DataSetGenerator {
 					int expId = expIds.get(exp);
 					ArrayList<BasicLog> tempChunkLogs =
 							DBReader.readLog_customized(tableName,
-//									"where profile_id = " + profileId + " and expId = " + expId + " limit 500" , sourceIndex);
-                    "where profile_id = " + profileId + " and expId = " + expId, sourceIndex);
+                  // FIXME:
+									"where profile_id = " + profileId + " and expId = " + expId + " limit 1000" , sourceIndex);
+//                    "where profile_id = " + profileId + " and expId = " + expId, sourceIndex);
 					int expIdSize = tempChunkLogs.size();
 					int indexTimeWin = 0;
 
