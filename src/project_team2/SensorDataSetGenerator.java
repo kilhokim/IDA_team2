@@ -384,8 +384,8 @@ public class SensorDataSetGenerator implements DataSetGenerator {
 								sum_diff_x += Math.abs(x_logs[l] - avg_x);
 								sum_diff_y += Math.abs(y_logs[l] - avg_y);
 								sum_diff_z += Math.abs(z_logs[l] - avg_z);
-								sum_acc += x_logs[l]*x_logs[l] + y_logs[l]*y_logs[l] +
-										z_logs[l]*z_logs[l];
+								sum_acc += Math.sqrt(x_logs[l]*x_logs[l] + y_logs[l]*y_logs[l] +
+										z_logs[l]*z_logs[l]);
 
                 int sign_x = (int)Math.signum(max_x);
                 if(x_logs[l] > max_x * (1-sign_x*delta*deltaThresh)){
@@ -461,7 +461,7 @@ public class SensorDataSetGenerator implements DataSetGenerator {
 							values[valueIdx][6] = sum_diff_x/timeWindowSize; // avg_diff_x
 							values[valueIdx][7] = sum_diff_y/timeWindowSize; // avg_diff_y
 							values[valueIdx][8] = sum_diff_z/timeWindowSize; // avg_diff_z
-							values[valueIdx][9] = Math.sqrt(sum_acc)/timeWindowSize; // avg_acc
+							values[valueIdx][9] = sum_acc/timeWindowSize; // avg_acc
 
 							/**
 							 * ITERATION FOR SEARCHING AT LEAST THREE PEAKS
