@@ -64,7 +64,7 @@ public class SensorFeature implements Feature {
 	public double[] bin_dist_9_z;
 	public double[] bin_dist_10_z;
 
-	public Double label;
+	public double label;
 
 	String[] numericAtts = {
 			"avg_x", "avg_y", "avg_z", "std_x", "std_y", "std_z",

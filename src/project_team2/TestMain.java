@@ -30,7 +30,7 @@ public class TestMain {
 
         // Conduct training with sensor data
         SensorDataSetGenerator sensorTrainDataSetGen = new SensorDataSetGenerator();
-        HashMap<Integer, Feature> sensorTrUsers = sensorTrainDataSetGen.generateDataSet(Keys.TRAIN_SET);
+        HashMap<Integer, Feature> sensorTrUsers = sensorTrainDataSetGen.generateDataSet(0);
         for (Integer i : sensorTrUsers.keySet()) {
             System.out.println(i + ": " + sensorTrUsers.get(i));
         }

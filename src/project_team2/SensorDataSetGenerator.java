@@ -160,8 +160,10 @@ public class SensorDataSetGenerator implements DataSetGenerator {
 				double[] instValues = new double[insts.numAttributes()];
 				for (int i = 0; i < instValues.length; i++) {
 					try {
-						if (i < numericFields.length)
-							instValues[i] = ((double[])numericFields[i].get(dataSet.get(profileId)))[inst];
+						if (i < numericFields.length){
+							if( i == numericFields.length-1) instValues[i] = (double) numericFields[i].getDouble(dataSet.get(profileId));
+							else instValues[i] = ((double[]) numericFields[i].get(dataSet.get(profileId)))[inst];
+						}
 						else {
 							String tempLabel = "" + nominalFields[i - numericFields.length].get(dataSet.get(profileId));
 							instValues[i] = insts.attribute(i).indexOfValue(tempLabel);
@@ -184,10 +186,10 @@ public class SensorDataSetGenerator implements DataSetGenerator {
 			ArrayList<Integer> profileIds = DBReader.readProfileIds(sourceIndex);
 			for (int profileId : profileIds) {
 				// FIXME:
-				if (users.size() > 5) {
-					break;
-				}
-//				if (profileId < 4) continue;
+//				if (profileId==3) {
+//					break;
+//				}
+				//				if (profileId < 4) continue;
 				Double tempUserLabel = DBReader.readLabel(labelName, profileId, sourceIndex);
 				Feature tempFeature = generateFeature_batchProcess(tableNames, profileId, tempUserLabel, sourceIndex);
 				users.put(profileId, tempFeature);
@@ -264,9 +266,8 @@ public class SensorDataSetGenerator implements DataSetGenerator {
 					int expId = expIds.get(exp);
 					ArrayList<BasicLog> tempChunkLogs =
 							DBReader.readLog_customized(tableName,
-                  // FIXME:
-									"where profile_id = " + profileId + " and expId = " + expId + " limit 1000", sourceIndex);
-//									"where profile_id = " + profileId + " and expId = " + expId, sourceIndex);
+									// FIXME:
+									"where profile_id = " + profileId + " and expId = " + expId, sourceIndex);
 					int expIdSize = tempChunkLogs.size();
 
 					// We abandon the logs which don't fit in the single time window
@@ -283,9 +284,8 @@ public class SensorDataSetGenerator implements DataSetGenerator {
 					int expId = expIds.get(exp);
 					ArrayList<BasicLog> tempChunkLogs =
 							DBReader.readLog_customized(tableName,
-                  // FIXME:
-									"where profile_id = " + profileId + " and expId = " + expId + " limit 1000" , sourceIndex);
-//                    "where profile_id = " + profileId + " and expId = " + expId, sourceIndex);
+									// FIXME:
+									"where profile_id = " + profileId + " and expId = " + expId , sourceIndex);
 					int expIdSize = tempChunkLogs.size();
 					int indexTimeWin = 0;
 
@@ -388,53 +388,53 @@ public class SensorDataSetGenerator implements DataSetGenerator {
 								sum_acc += Math.sqrt(x_logs[l]*x_logs[l] + y_logs[l]*y_logs[l] +
 										z_logs[l]*z_logs[l]);
 
-//                int sign_x = (int)Math.signum(max_x);
-//                if(x_logs[l] > max_x * (1-sign_x*delta*deltaThresh)){
-//                  if(peakIndexList_x[l] != 1){
-//                    peakIndexList_x[l] =1;
-//                    foundPeakNum_x++;
-////                      System.out.println("foundPeakNum_x=" + foundPeakNum_x +
-////                                         ", peakIndexList_x["+l+"]=1");
-//                  }
-//                }
-//                int sign_y = (int)Math.signum(max_y);
-//                if(y_logs[l] > max_y * (1-sign_y*delta*deltaThresh)){
-//                  if(peakIndexList_y[l] != 1){
-//                    peakIndexList_y[l] =1;
-//                    foundPeakNum_y++;
-////                      System.out.println("foundPeakNum_y=" + foundPeakNum_y +
-////                                         ", peakIndexList_y["+l+"]=1");
-//                  }
-//                }
-//                int sign_z = (int)Math.signum(max_z);
-//                if(z_logs[l] > max_z * (1-sign_z*delta*deltaThresh)){
-//                  if(peakIndexList_z[l] != 1){
-//                    peakIndexList_z[l] =1;
-//                    foundPeakNum_z++;
-////                      System.out.println("foundPeakNum_z=" + foundPeakNum_z +
-////                                         ", peakIndexList_z["+l+"]=1");
-//                  }
-//                }
+								//                int sign_x = (int)Math.signum(max_x);
+								//                if(x_logs[l] > max_x * (1-sign_x*delta*deltaThresh)){
+								//                  if(peakIndexList_x[l] != 1){
+								//                    peakIndexList_x[l] =1;
+								//                    foundPeakNum_x++;
+								////                      System.out.println("foundPeakNum_x=" + foundPeakNum_x +
+								////                                         ", peakIndexList_x["+l+"]=1");
+								//                  }
+								//                }
+								//                int sign_y = (int)Math.signum(max_y);
+								//                if(y_logs[l] > max_y * (1-sign_y*delta*deltaThresh)){
+								//                  if(peakIndexList_y[l] != 1){
+								//                    peakIndexList_y[l] =1;
+								//                    foundPeakNum_y++;
+								////                      System.out.println("foundPeakNum_y=" + foundPeakNum_y +
+								////                                         ", peakIndexList_y["+l+"]=1");
+								//                  }
+								//                }
+								//                int sign_z = (int)Math.signum(max_z);
+								//                if(z_logs[l] > max_z * (1-sign_z*delta*deltaThresh)){
+								//                  if(peakIndexList_z[l] != 1){
+								//                    peakIndexList_z[l] =1;
+								//                    foundPeakNum_z++;
+								////                      System.out.println("foundPeakNum_z=" + foundPeakNum_z +
+								////                                         ", peakIndexList_z["+l+"]=1");
+								//                  }
+								//                }
 								if (x_logs[l] > max_x - (max_x-min_x)*delta*deltaThresh) {
 									peakIndexList_x[l] = 1;
 									foundPeakNum_x++;
-//									if (valueIdx % 100 == 0)
-										System.out.println("foundPeakNum_x=" + foundPeakNum_x +
-														", peakIndexList_x["+l+"]=1");
+									//									if (valueIdx % 100 == 0)
+									//										System.out.println("foundPeakNum_x=" + foundPeakNum_x +
+									//														", peakIndexList_x["+l+"]=1");
 								}
 								if (y_logs[l] > max_y - (max_y-min_y)*delta*deltaThresh) {
 									peakIndexList_y[l] = 1;
 									foundPeakNum_y++;
-//									if (valueIdx % 100 == 0)
-										System.out.println("foundPeakNum_y=" + foundPeakNum_y +
-														", peakIndexList_y["+l+"]=1");
+									//									if (valueIdx % 100 == 0)
+									//										System.out.println("foundPeakNum_y=" + foundPeakNum_y +
+									//														", peakIndexList_y["+l+"]=1");
 								}
 								if (z_logs[l] > max_z - (max_z-min_z)*delta*deltaThresh) {
 									peakIndexList_z[l] = 1;
 									foundPeakNum_z++;
-//									if (valueIdx % 100 == 0)
-										System.out.println("foundPeakNum_z=" + foundPeakNum_z +
-														", peakIndexList_z["+l+"]=1");
+									//									if (valueIdx % 100 == 0)
+									//										System.out.println("foundPeakNum_z=" + foundPeakNum_z +
+									//														", peakIndexList_z["+l+"]=1");
 								}
 
 								// Calculate bin distributions
@@ -473,11 +473,11 @@ public class SensorDataSetGenerator implements DataSetGenerator {
 								else if (interval_z*7 <= log_z && log_z < interval_z*8) dist_z[7] += 1;
 								else if (interval_z*8 <= log_z && log_z < interval_z*9) dist_z[8] += 1;
 								else dist_z[9] += 1;
-//
+								//
 								for (int d = 0; d < 10; d++) {
-                  dist_x[d] /= timeWindowSize;
-                  dist_y[d] /= timeWindowSize;
-                  dist_z[d] /= timeWindowSize;
+									dist_x[d] /= timeWindowSize;
+									dist_y[d] /= timeWindowSize;
+									dist_z[d] /= timeWindowSize;
 								}
 							}
 							values[valueIdx][6] = sum_diff_x/timeWindowSize; // avg_diff_x
@@ -491,58 +491,58 @@ public class SensorDataSetGenerator implements DataSetGenerator {
 							// Loop for searching at least three peaks
 							while (foundPeakNum_x < 3 || foundPeakNum_y < 3 || foundPeakNum_z < 3 ) {
 								delta++;
-								System.out.println("max_x: "+ max_x+ " " +foundPeakNum_x + " " + foundPeakNum_y + " " + foundPeakNum_z);
+//								System.out.println("max_x: "+ max_x+ " " +foundPeakNum_x + " " + foundPeakNum_y + " " + foundPeakNum_z);
 								for (int l = 0; l < timeWindowSize; l++) {
-//									int sign_x = (int)Math.signum(max_x);
-//                  if(x_logs[l] > max_x * (1-sign_x*delta*deltaThresh) && foundPeakNum_x < 3){
-//                    if(peakIndexList_x[l] != 1){
-//                      peakIndexList_x[l] =1;
-//                      foundPeakNum_x++;
-//                      System.out.println("foundPeakNum_x=" + foundPeakNum_x +
-//                                         ", peakIndexList_x["+l+"]=1");
-//                    }
-//                  }
-//									int sign_y = (int)Math.signum(max_y);
-//                  if(y_logs[l] > max_y * (1-sign_y*delta*deltaThresh) && foundPeakNum_y < 3){
-//                    if(peakIndexList_y[l] != 1){
-//                      peakIndexList_y[l] =1;
-//                      foundPeakNum_y++;
-//                      System.out.println("foundPeakNum_y=" + foundPeakNum_y +
-//                                         ", peakIndexList_y["+l+"]=1");
-//                    }
-//                  }
-//									int sign_z = (int)Math.signum(max_z);
-//                  if(z_logs[l] > max_z * (1-sign_z*delta*deltaThresh) && foundPeakNum_z < 3){
-//                    if(peakIndexList_z[l] != 1){
-//                      peakIndexList_z[l] =1;
-//                      foundPeakNum_z++;
-//                      System.out.println("foundPeakNum_z=" + foundPeakNum_z +
-//                                         ", peakIndexList_z["+l+"]=1");
-//                    }
-//                  }
+									//									int sign_x = (int)Math.signum(max_x);
+									//                  if(x_logs[l] > max_x * (1-sign_x*delta*deltaThresh) && foundPeakNum_x < 3){
+									//                    if(peakIndexList_x[l] != 1){
+									//                      peakIndexList_x[l] =1;
+									//                      foundPeakNum_x++;
+									//                      System.out.println("foundPeakNum_x=" + foundPeakNum_x +
+									//                                         ", peakIndexList_x["+l+"]=1");
+									//                    }
+									//                  }
+									//									int sign_y = (int)Math.signum(max_y);
+									//                  if(y_logs[l] > max_y * (1-sign_y*delta*deltaThresh) && foundPeakNum_y < 3){
+									//                    if(peakIndexList_y[l] != 1){
+									//                      peakIndexList_y[l] =1;
+									//                      foundPeakNum_y++;
+									//                      System.out.println("foundPeakNum_y=" + foundPeakNum_y +
+									//                                         ", peakIndexList_y["+l+"]=1");
+									//                    }
+									//                  }
+									//									int sign_z = (int)Math.signum(max_z);
+									//                  if(z_logs[l] > max_z * (1-sign_z*delta*deltaThresh) && foundPeakNum_z < 3){
+									//                    if(peakIndexList_z[l] != 1){
+									//                      peakIndexList_z[l] =1;
+									//                      foundPeakNum_z++;
+									//                      System.out.println("foundPeakNum_z=" + foundPeakNum_z +
+									//                                         ", peakIndexList_z["+l+"]=1");
+									//                    }
+									//                  }
 									if (x_logs[l] > max_x - (max_x-min_x)*delta*deltaThresh && foundPeakNum_x < 3) {
 										peakIndexList_x[l] = 1;
 										foundPeakNum_x++;
-										if (valueIdx % 100 == 0)
-                      System.out.println("foundPeakNum_x=" + foundPeakNum_x +
-                                         ", peakIndexList_x["+l+"]=1");
+//										if (valueIdx % 100 == 0)
+//											System.out.println("foundPeakNum_x=" + foundPeakNum_x +
+//													", peakIndexList_x["+l+"]=1");
 									}
 									if (y_logs[l] > max_y - (max_y-min_y)*delta*deltaThresh && foundPeakNum_y < 3) {
 										peakIndexList_y[l] = 1;
 										foundPeakNum_y++;
-										if (valueIdx % 100 == 0)
-                      System.out.println("foundPeakNum_y=" + foundPeakNum_y +
-                                         ", peakIndexList_y["+l+"]=1");
+//										if (valueIdx % 100 == 0)
+//											System.out.println("foundPeakNum_y=" + foundPeakNum_y +
+//													", peakIndexList_y["+l+"]=1");
 									}
 									if (z_logs[l] > max_z - (max_z-min_z)*delta*deltaThresh && foundPeakNum_z < 3) {
 										peakIndexList_z[l] = 1;
 										foundPeakNum_z++;
-										if (valueIdx % 100 == 0)
-                      System.out.println("foundPeakNum_z=" + foundPeakNum_z +
-                                         ", peakIndexList_z["+l+"]=1");
+//										if (valueIdx % 100 == 0)
+//											System.out.println("foundPeakNum_z=" + foundPeakNum_z +
+//													", peakIndexList_z["+l+"]=1");
 									}
 								}
-//								System.out.println("delta " + delta + " x: "+ foundPeakNum_x + " y: " + foundPeakNum_y + " z: "+ foundPeakNum_z);
+								//								System.out.println("delta " + delta + " x: "+ foundPeakNum_x + " y: " + foundPeakNum_y + " z: "+ foundPeakNum_z);
 							}
 
 							// Calculate an average of the time between successive peaks 
@@ -627,28 +627,28 @@ public class SensorDataSetGenerator implements DataSetGenerator {
 		return feature;
 	}
 
-//	public static double[] getBinDist(double[] logs, double min, double max) {
-//		double[] dist = new double[10];
-//		double interval = (max - min) / 10;
-//		for (int l = 0; l < logs.length; l++) {
-//			double log = logs[l] - min;
-//			if (interval*0 <= log && log < interval*1) dist[0] += 1;
-//			else if (interval*1 <= log && log < interval*2) dist[1] += 1;
-//			else if (interval*2 <= log && log < interval*3) dist[2] += 1;
-//			else if (interval*3 <= log && log < interval*4) dist[3] += 1;
-//			else if (interval*4 <= log && log < interval*5) dist[4] += 1;
-//			else if (interval*5 <= log && log < interval*6) dist[5] += 1;
-//			else if (interval*6 <= log && log < interval*7) dist[6] += 1;
-//			else if (interval*7 <= log && log < interval*8) dist[7] += 1;
-//			else if (interval*8 <= log && log < interval*9) dist[8] += 1;
-//			else dist[9] += 1;
-//		}
-//
-//		for (int i = 0; i < dist.length; i++) {
-//			dist[i] /= logs.length;
-//		}
-//
-//		return dist;
-//	}
+	//	public static double[] getBinDist(double[] logs, double min, double max) {
+	//		double[] dist = new double[10];
+	//		double interval = (max - min) / 10;
+	//		for (int l = 0; l < logs.length; l++) {
+	//			double log = logs[l] - min;
+	//			if (interval*0 <= log && log < interval*1) dist[0] += 1;
+	//			else if (interval*1 <= log && log < interval*2) dist[1] += 1;
+	//			else if (interval*2 <= log && log < interval*3) dist[2] += 1;
+	//			else if (interval*3 <= log && log < interval*4) dist[3] += 1;
+	//			else if (interval*4 <= log && log < interval*5) dist[4] += 1;
+	//			else if (interval*5 <= log && log < interval*6) dist[5] += 1;
+	//			else if (interval*6 <= log && log < interval*7) dist[6] += 1;
+	//			else if (interval*7 <= log && log < interval*8) dist[7] += 1;
+	//			else if (interval*8 <= log && log < interval*9) dist[8] += 1;
+	//			else dist[9] += 1;
+	//		}
+	//
+	//		for (int i = 0; i < dist.length; i++) {
+	//			dist[i] /= logs.length;
+	//		}
+	//
+	//		return dist;
+	//	}
 	////////////////////////////////////////////////////////////////////////////////////////////////
 }

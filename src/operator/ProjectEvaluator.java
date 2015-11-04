@@ -69,7 +69,7 @@ public class ProjectEvaluator {
 
     public static void runTest(DataSetGenerator dataSetGen, Classifier trainedCls) {
         long startTime = System.currentTimeMillis();
-        HashMap<Integer, Feature> teUsers = dataSetGen.generateDataSet(2);
+        HashMap<Integer, Feature> teUsers = dataSetGen.generateDataSet(1);
         Instances testSet = dataSetGen.transformToInstances(teUsers);
         testSet.setClassIndex(testSet.numAttributes() - 1);
 
