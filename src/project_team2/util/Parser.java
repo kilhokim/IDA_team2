@@ -46,7 +46,7 @@ public class Parser {
 
   public static boolean updateCategory(String packageName, String cat)
           throws SQLException {
-    DBConn.connect(false);
+    DBConn.connect(Keys.TRAIN_SET);
     Statement stmt = DBConn.con.createStatement();
 
     int result = stmt.executeUpdate("UPDATE ApplicationsProbe SET appCategory='" + cat + "' WHERE packageName='" + packageName + "'");

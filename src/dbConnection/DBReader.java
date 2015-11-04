@@ -25,9 +25,9 @@ public class DBReader {
     read some DB table and return HashMap (key : profile id, value : list of logs)
     */
 
-    public static HashMap<Integer, ArrayList<BasicLog>> readLog(String tableName, String whereClause, boolean test) {
+    public static HashMap<Integer, ArrayList<BasicLog>> readLog(String tableName, String whereClause, int sourceIndex) {
         ProjectEvaluator.tableUsed(tableName);
-        ResultSet rs = DBConn.execQuery("select * from " + tableName + " " + whereClause, test);
+        ResultSet rs = DBConn.execQuery("select * from " + tableName + " " + whereClause, sourceIndex);
         HashMap<Integer, ArrayList<BasicLog>> eachUserLogs = new HashMap<Integer, ArrayList<BasicLog>>();
         try {
             while (rs.next()) {
@@ -151,7 +151,7 @@ public class DBReader {
                     case "ImageMediaProbe":
                         logs.add(new ImageMediaLog(rs.getInt("id"), rs.getDouble("time_stamp"), rs.getLong("expId"),
                                 rs.getString("probe_name"), rs.getInt("profile_id"),
-                                rs.getString("_display_name"), rs.getInt("_size"), rs.getString("bucket_display_name"),
+                                rs.getString("_display_name"), rs.getLong("_size"), rs.getString("bucket_display_name"),
                                 rs.getDouble("date_added"), rs.getDouble("datetaken"), rs.getInt("isprivate"), rs.getDouble("latitude"),
                                 rs.getDouble("longitude"), rs.getString("mime_type"), rs.getString("title"),
                                 rs.getDouble("mini_thumb_magic"), rs.getInt("orientation")));
@@ -272,9 +272,9 @@ public class DBReader {
         return eachUserLogs;
     }
 
-    public static ArrayList<BasicLog> readLog_customized(String tableName, String whereClause, boolean test) {
+    public static ArrayList<BasicLog> readLog_customized(String tableName, String whereClause, int sourceIndex) {
         ProjectEvaluator.tableUsed(tableName);
-        ResultSet rs = DBConn.execQuery("select * from " + tableName + " " + whereClause, test);
+        ResultSet rs = DBConn.execQuery("select * from " + tableName + " " + whereClause, sourceIndex);
         ArrayList<BasicLog> logs = new ArrayList<BasicLog>();
         try {
             while (rs.next()) {
@@ -390,7 +390,7 @@ public class DBReader {
                     case "ImageMediaProbe":
                         logs.add(new ImageMediaLog(rs.getInt("id"), rs.getDouble("time_stamp"), rs.getLong("expId"),
                                 rs.getString("probe_name"), rs.getInt("profile_id"),
-                                rs.getString("_display_name"), rs.getInt("_size"), rs.getString("bucket_display_name"),
+                                rs.getString("_display_name"), rs.getLong("_size"), rs.getString("bucket_display_name"),
                                 rs.getDouble("date_added"), rs.getDouble("datetaken"), rs.getInt("isprivate"), rs.getDouble("latitude"),
                                 rs.getDouble("longitude"), rs.getString("mime_type"), rs.getString("title"),
                                 rs.getDouble("mini_thumb_magic"), rs.getInt("orientation")));
@@ -510,9 +510,9 @@ public class DBReader {
         return logs;
     }
 
-    public static ArrayList<Integer> readProfileIds(boolean test){
+    public static ArrayList<Integer> readProfileIds(int sourceIndex){
         ArrayList<Integer> profileIds = new ArrayList<>();
-        ResultSet rs = DBConn.execQuery("select distinct profile_id from profile_info", test);
+        ResultSet rs = DBConn.execQuery("select distinct profile_id from profile_info", sourceIndex);
         try {
             while(rs.next()){
                 profileIds.add(rs.getInt("profile_id"));
@@ -524,10 +524,10 @@ public class DBReader {
         return profileIds;
     }
 
-    public static ArrayList<Integer> readExpIds(String tableName, int profileId, boolean test){
+    public static ArrayList<Integer> readExpIds(String tableName, int profileId, int sourceIndex){
         ArrayList<Integer> expIds = new ArrayList<>();
         ResultSet rs = DBConn.execQuery("select distinct expId from " + tableName +
-                " where profile_id = " + profileId, test);
+                " where profile_id = " + profileId, sourceIndex);
         try {
             while(rs.next()){
                 expIds.add(rs.getInt("expId"));
@@ -540,13 +540,13 @@ public class DBReader {
     }
 
 
-    public static double readLabel(String labelName, int profileId, boolean test) {
-        double label = 0.0;
+    public static double readLabel(String labelName, int profileId, int sourceIndex) {
+        double label = 0;
         ResultSet rs = DBConn.execQuery("select " + labelName +
-                " from profile_info where profile_id = " + profileId, test);
+                " from profile_info where profile_id = " + profileId, sourceIndex);
         try {
             rs.next();
-            label =  rs.getDouble(labelName);
+            label = rs.getDouble(labelName);
             rs.close();
         } catch (SQLException e) {
             e.printStackTrace();

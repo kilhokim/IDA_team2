@@ -15,7 +15,7 @@ import java.io.IOException;
  */
 public class ReadWriteInstances {
 
-    public static Instances readDB(String sqlQuery, String tableName, boolean test) {
+    public static Instances readDB(String sqlQuery, String tableName, int sourceIndex) {
         /*
         proper mysql query is needed.
         sqlQuery : "SELECT * FROM AccelerometerSensorProbe"
@@ -30,15 +30,23 @@ public class ReadWriteInstances {
         Instances dataSet = null;
         try {
             InstanceQuery query = new InstanceQuery();
-            if(test){
+            if(sourceIndex == 0){
+                query.setDatabaseURL(DBConn.url);
+                query.setUsername(DBConn.user);
+                query.setPassword(DBConn.pwd);
+            }
+            else if(sourceIndex == 1){
+                query.setDatabaseURL(DBConn.url_validation);
+                query.setUsername(DBConn.user_validation);
+                query.setPassword(DBConn.pwd_validation);
+            }
+            else if(sourceIndex == 2){
                 query.setDatabaseURL(ProjectEvaluator.testUrl);
                 query.setUsername(ProjectEvaluator.testUser);
                 query.setPassword(ProjectEvaluator.testPwd);
             }
             else{
-                query.setDatabaseURL(DBConn.url);
-                query.setUsername(DBConn.user);
-                query.setPassword(DBConn.pwd);
+                throw new Exception("source index must be 0, 1 or 2!");
             }
             query.setQuery(sqlQuery);
             dataSet = query.retrieveInstances();

@@ -3,6 +3,7 @@ package project_team2;
 import dbConnection.DBConn;
 import dbConnection.DBReader;
 import operator.ReadWriteInstances;
+import project_team2.util.Keys;
 import project_team2.util.Parser;
 import structure.log.BasicLog;
 import structure.log.deviceInteraction.ApplicationsLog;
@@ -117,7 +118,7 @@ public class NormalDataSetGenerator implements DataSetGenerator {
 
   public static void main(String[] args) {
     NormalDataSetGenerator dataSetGen = new NormalDataSetGenerator();
-    HashMap<Integer, Feature> users = dataSetGen.generateDataSet(false);
+    HashMap<Integer, Feature> users = dataSetGen.generateDataSet(Keys.TRAIN_SET);
     Instances dataSet = dataSetGen.transformToInstances(users);
     dataSet.setClassIndex(dataSet.numAttributes() - 1);
     ReadWriteInstances.writeFile(dataSet, dataSetGen.savePath, dataSetGen.fileName, dataSetGen.extension);
@@ -168,23 +169,23 @@ public class NormalDataSetGenerator implements DataSetGenerator {
 
   ////////////////////////////////////////////////////////////////////////////////////////////////
   //////////////////////////////////    Should be included!     //////////////////////////////////
-  public HashMap<Integer, Feature> generateDataSet(boolean test) {
+  public HashMap<Integer, Feature> generateDataSet(int sourceIndex) {
     HashMap<Integer, Feature> users = new HashMap<Integer, Feature>();
     if (batchProcess) {
-      ArrayList<Integer> profileIds = DBReader.readProfileIds(test);
+      ArrayList<Integer> profileIds = DBReader.readProfileIds(sourceIndex);
       for (int profileId : profileIds) {
-        Double tempUserLabel = DBReader.readLabel(labelName, profileId, test);
-        Feature tempFeature = generateFeature_batchProcess(tableNames, profileId, tempUserLabel, test);
+        Double tempUserLabel = DBReader.readLabel(labelName, profileId, sourceIndex);
+        Feature tempFeature = generateFeature_batchProcess(tableNames, profileId, tempUserLabel, sourceIndex);
         users.put(profileId, tempFeature);
       }
 
       // IMPORTANT: Fill missing features for nullProfileIds
-      users = fillMissingFeatures(users, nullFeatureProfileIdMap, profileIds, test);
+      users = fillMissingFeatures(users, nullFeatureProfileIdMap, profileIds, sourceIndex);
 
     } else {
       HashMap<Integer, HashMap<String, ArrayList<BasicLog>>> wholeLogs = new HashMap<>();
       for (String tableName : tableNames) {
-        HashMap<Integer, ArrayList<BasicLog>> eachUserLogs = DBReader.readLog(tableName, "", test);
+        HashMap<Integer, ArrayList<BasicLog>> eachUserLogs = DBReader.readLog(tableName, "", sourceIndex);
         for (int profileId : eachUserLogs.keySet()) {
           if (wholeLogs.containsKey(profileId)) {
             wholeLogs.get(profileId).put(tableName, eachUserLogs.get(profileId));
@@ -196,7 +197,7 @@ public class NormalDataSetGenerator implements DataSetGenerator {
         }
       }
       for (int profileId : wholeLogs.keySet()) {
-        Double tempUserLabel = DBReader.readLabel(labelName, profileId, test);
+        Double tempUserLabel = DBReader.readLabel(labelName, profileId, sourceIndex);
         users.put(profileId, generateFeature(wholeLogs.get(profileId), tempUserLabel));
       }
     }
@@ -236,14 +237,14 @@ public class NormalDataSetGenerator implements DataSetGenerator {
     return feature;
   }
 
-  public Feature generateFeature_batchProcess(ArrayList<String> tableNames, int profileId, Double label, boolean test) {
+  public Feature generateFeature_batchProcess(ArrayList<String> tableNames, int profileId, Double label, int sourceIndex) {
     NormalFeature feature = new NormalFeature();
     feature.setLabel(label);
     System.out.println("profileId=" + profileId + ", feature=" + feature.numSmss);
 
     TableNameLoop:
     for (String tableName : tableNames) {
-      ArrayList<Integer> expIds = DBReader.readExpIds(tableName, profileId, test);
+      ArrayList<Integer> expIds = DBReader.readExpIds(tableName, profileId, sourceIndex);
 
       /**
        @author Kilho Kim
@@ -260,7 +261,7 @@ public class NormalDataSetGenerator implements DataSetGenerator {
         for (int j = 0; j < expIds.size(); j++) {
           int expId = expIds.get(j);
           ArrayList<BasicLog> tempChunkLogs = DBReader.readLog_customized(tableName,
-                  "where profile_id = " + profileId + " and expId = " + expId, test);
+                  "where profile_id = " + profileId + " and expId = " + expId, sourceIndex);
           for (int i = 0; i < tempChunkLogs.size(); i++) {
             try {
               ApplicationsLog log =
@@ -302,7 +303,7 @@ public class NormalDataSetGenerator implements DataSetGenerator {
         int imageMediaSize = 0;
 
         ArrayList<BasicLog> totalChunkLogs = DBReader.readLog_customized(tableName,
-                "where profile_id = " + profileId + " order by time_stamp asc", test);
+                "where profile_id = " + profileId + " order by time_stamp asc", sourceIndex);
 
         // IMPORTANT: Escape rule for exception
         // FIXME:
@@ -321,7 +322,7 @@ public class NormalDataSetGenerator implements DataSetGenerator {
         for (int j = 0; j < expIds.size(); j++) {
           int expId = expIds.get(j);
           ArrayList<BasicLog> tempChunkLogs = DBReader.readLog_customized(tableName,
-                  "where profile_id = " + profileId + " and expId = " + expId, test);
+                  "where profile_id = " + profileId + " and expId = " + expId, sourceIndex);
 
           for (int i = 0; i < tempChunkLogs.size(); i++) {
             ImageMediaLog log = (ImageMediaLog) tempChunkLogs.get(i);
@@ -361,7 +362,7 @@ public class NormalDataSetGenerator implements DataSetGenerator {
         int duration = 0;
 
         ArrayList<BasicLog> totalChunkLogs = DBReader.readLog_customized(tableName,
-                "where profile_id = " + profileId + " order by time_stamp asc", test);
+                "where profile_id = " + profileId + " order by time_stamp asc", sourceIndex);
 
         // IMPORTANT: Escape rule for exception
         // FIXME:
@@ -379,7 +380,7 @@ public class NormalDataSetGenerator implements DataSetGenerator {
         for (int j = 0; j < expIds.size(); j++) {
           int expId = expIds.get(j);
           ArrayList<BasicLog> tempChunkLogs = DBReader.readLog_customized(tableName,
-                  "where profile_id = " + profileId + " and expId = " + expId, test);
+                  "where profile_id = " + profileId + " and expId = " + expId, sourceIndex);
           for (int i = 0; i < tempChunkLogs.size(); i++) {
             VideoMediaLog log = (VideoMediaLog) tempChunkLogs.get(i);
             currBucketDisplayName = log.bucketDisplayName;
@@ -419,7 +420,7 @@ public class NormalDataSetGenerator implements DataSetGenerator {
         for (int j = 0; j < expIds.size(); j++) {
           int expId = expIds.get(j);
           ArrayList<BasicLog> tempChunkLogs = DBReader.readLog_customized(tableName,
-                  "where profile_id = " + profileId + " and expId = " + expId, test);
+                  "where profile_id = " + profileId + " and expId = " + expId, sourceIndex);
           for (int i = 0; i < tempChunkLogs.size(); i++) {
             AudioMediaLog log = (AudioMediaLog) tempChunkLogs.get(i);
             numAudios += 1;
@@ -449,8 +450,8 @@ public class NormalDataSetGenerator implements DataSetGenerator {
         double currTimeStamp;
 
         ArrayList<BasicLog> totalChunkLogs = DBReader.readLog_customized(tableName,
-                "where profile_id = " + profileId + " order by time_stamp asc", test);
-        //                        "where profile_id = " + profileId + " and expId = " + expId + " order by time_stamp asc", test);
+                "where profile_id = " + profileId + " order by time_stamp asc", sourceIndex);
+        //                        "where profile_id = " + profileId + " and expId = " + expId + " order by time_stamp asc", sourceIndex);
 
         // IMPORTANT: Escape rule for exception
         // FIXME:
@@ -526,8 +527,8 @@ public class NormalDataSetGenerator implements DataSetGenerator {
         double numCallOut = 0;
 
         ArrayList<BasicLog> totalChunkLogs = DBReader.readLog_customized(tableName,
-                "where profile_id = " + profileId + " order by time_stamp asc", test);
-        //                        "where profile_id = " + profileId + " and expId = " + expId + " order by time_stamp asc", test);
+                "where profile_id = " + profileId + " order by time_stamp asc", sourceIndex);
+        //                        "where profile_id = " + profileId + " and expId = " + expId + " order by time_stamp asc", sourceIndex);
 
         // IMPORTANT: Escape rule for exception
         // FIXME:
@@ -623,7 +624,7 @@ public class NormalDataSetGenerator implements DataSetGenerator {
           HashMap<Integer, Feature> users,
           Map<String, List<Integer>> nullFeatureProfileIdMap,
           ArrayList<Integer> profileIds,
-          boolean test) {
+          int sourceIndex) {
 
     // IMPORTANT: Put values into null feature for some profileIds
     //            an avg value for the other profileId's feature values
@@ -713,7 +714,7 @@ public class NormalDataSetGenerator implements DataSetGenerator {
       for (int i = 0; i < nullProfileIds.size(); i++) {
         int nullProfileId = nullProfileIds.get(i);
         Double nullProfileIdUserLabel =
-                DBReader.readLabel(labelName, nullProfileId, test);
+                DBReader.readLabel(labelName, nullProfileId, sourceIndex);
         NormalFeature avgFeature = (NormalFeature)users.get(nullProfileId);
         printFeatureValue(avgValues);
         switch (tableName) {

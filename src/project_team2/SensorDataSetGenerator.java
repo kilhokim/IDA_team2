@@ -3,6 +3,7 @@ package project_team2;
 import dbConnection.DBConn;
 import dbConnection.DBReader;
 import operator.ReadWriteInstances;
+import project_team2.util.Keys;
 import structure.log.BasicLog;
 import structure.log.motion.AccelerometerLog;
 import structure.log.motion.GyroscopeLog;
@@ -22,7 +23,7 @@ import java.util.Iterator;
  */
 public class SensorDataSetGenerator implements DataSetGenerator {
 
-	String labelName = "gender";
+	// String labelName = "weight";
 	ArrayList<String> tableNames;
 
 	String savePath = "dataSet\\";
@@ -118,7 +119,7 @@ public class SensorDataSetGenerator implements DataSetGenerator {
 
 	public static void main(String[] args) {
 		SensorDataSetGenerator sensorDataSetGen = new SensorDataSetGenerator();
-		HashMap<Integer, Feature> users = sensorDataSetGen.generateDataSet(false);
+		HashMap<Integer, Feature> users = sensorDataSetGen.generateDataSet(Keys.TRAIN_SET);
 		//    Instances dataSet = sensorDataSetGen.transformToInstances(users);
 		//    dataSet.setClassIndex(dataSet.numAttributes() - 1);
 		//    ReadWriteInstances.writeFile(dataSet, sensorDataSetGen.savePath, sensorDataSetGen.fileName, sensorDataSetGen.extension);
@@ -177,20 +178,19 @@ public class SensorDataSetGenerator implements DataSetGenerator {
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	//////////////////////////////////    Should be included!     //////////////////////////////////
-	public HashMap<Integer, Feature> generateDataSet(boolean test) {
+	public HashMap<Integer, Feature> generateDataSet(int sourceIndex) {
 		HashMap<Integer, Feature> users = new HashMap<Integer, Feature>();
 		if (batchProcess) {
-			ArrayList<Integer> profileIds = DBReader.readProfileIds(test);
+			ArrayList<Integer> profileIds = DBReader.readProfileIds(sourceIndex);
 			for (int profileId : profileIds) {
-				if (profileId == 3) break;
-				Double tempUserLabel = DBReader.readLabel(labelName, profileId, test);
-				Feature tempFeature = generateFeature_batchProcess(tableNames, profileId, tempUserLabel, test);
+				Double tempUserLabel = DBReader.readLabel(labelName, profileId, sourceIndex);
+				Feature tempFeature = generateFeature_batchProcess(tableNames, profileId, tempUserLabel, sourceIndex);
 				users.put(profileId, tempFeature);
 			}
 		} else {
 			HashMap<Integer, HashMap<String, ArrayList<BasicLog>>> wholeLogs = new HashMap<>();
 			for (String tableName : tableNames) {
-				HashMap<Integer, ArrayList<BasicLog>> eachUserLogs = DBReader.readLog(tableName, "", test);
+				HashMap<Integer, ArrayList<BasicLog>> eachUserLogs = DBReader.readLog(tableName, "", sourceIndex);
 				for (int profileId : eachUserLogs.keySet()) {
 					if (wholeLogs.containsKey(profileId)) {
 						wholeLogs.get(profileId).put(tableName, eachUserLogs.get(profileId));
@@ -202,7 +202,7 @@ public class SensorDataSetGenerator implements DataSetGenerator {
 				}
 			}
 			for (int profileId : wholeLogs.keySet()) {
-				Double tempUserLabel = DBReader.readLabel(labelName, profileId, test);
+				Double tempUserLabel = DBReader.readLabel(labelName, profileId, sourceIndex);
 				users.put(profileId, generateFeature(wholeLogs.get(profileId), tempUserLabel));
 			}
 		}
@@ -241,14 +241,14 @@ public class SensorDataSetGenerator implements DataSetGenerator {
 		return feature;
 	}
 
-	public Feature generateFeature_batchProcess(ArrayList<String> tableNames, int profileId, Double label, boolean test) {
+	public Feature generateFeature_batchProcess(ArrayList<String> tableNames, int profileId, Double label, int sourceIndex) {
 		SensorFeature feature = new SensorFeature();
 		feature.setLabel(label);
 
 		System.out.println("Starting batch processing...");
 		// Iterate over table names (probes)
 		for (String tableName : tableNames) {
-			ArrayList<Integer> expIds = DBReader.readExpIds(tableName, profileId, test);
+			ArrayList<Integer> expIds = DBReader.readExpIds(tableName, profileId, sourceIndex);
 			if (tableName.equals("AccelerometerSensorProbe")) {
 
 				int numAccInstances = 0;
@@ -257,7 +257,7 @@ public class SensorDataSetGenerator implements DataSetGenerator {
 					int expId = expIds.get(exp);
 					ArrayList<BasicLog> tempChunkLogs =
 							DBReader.readLog_customized(tableName,
-									"where profile_id = " + profileId + " and expId = " + expId + " limit 500", test);
+									"where profile_id = " + profileId + " and expId = " + expId + " limit 500", sourceIndex);
 					int expIdSize = tempChunkLogs.size();
 
 					// We abandon the logs which don't fit in the single time window
@@ -273,7 +273,7 @@ public class SensorDataSetGenerator implements DataSetGenerator {
 					int expId = expIds.get(exp);
 					ArrayList<BasicLog> tempChunkLogs =
 							DBReader.readLog_customized(tableName,
-									"where profile_id = " + profileId + " and expId = " + expId + " limit 500" , test);
+									"where profile_id = " + profileId + " and expId = " + expId + " limit 500" , sourceIndex);
 					int expIdSize = tempChunkLogs.size();
 					int indexTimeWin = 0;
 
@@ -467,7 +467,7 @@ public class SensorDataSetGenerator implements DataSetGenerator {
 										}	 
 									}
 								}
-								System.out.println("delta " + delta + " x: "+ foundPeakNum_x + " y: " + foundPeakNum_y + " z: "+ foundPeakNum_z);
+//								System.out.println("delta " + delta + " x: "+ foundPeakNum_x + " y: " + foundPeakNum_y + " z: "+ foundPeakNum_z);
 							}
 
 							// Calculate an average of the time between successive peaks 
@@ -510,6 +510,9 @@ public class SensorDataSetGenerator implements DataSetGenerator {
 								values[valueIdx][j] = dist_z[j-33];
 
 
+							if (valueIdx % 100 == 0) {
+								System.out.println("valueIdx=" + valueIdx);
+							}
 							valueIdx++; // IMPORTANT: increase the valueIdx
 							// after putting a single instance
 							// Re-initialize the variables
@@ -535,8 +538,12 @@ public class SensorDataSetGenerator implements DataSetGenerator {
 					}
 				}
 
+				// Print first 10 instances as samples
 				for (int inst = 0; inst < 10; inst++) {
-					System.out.println(values[inst].toString());
+					for (int attr = 0; attr < values[inst].length; attr++) {
+						System.out.print(values[valueIdx] + " ");
+					}
+					System.out.print("\n");
 				}
 				feature.setValues_Accelerometer(tableName, values);
 			}

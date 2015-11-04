@@ -11,7 +11,6 @@ import structure.log.positioning.*;
 import structure.log.social.CallLog;
 import structure.log.social.ContactLog;
 import structure.log.social.SmsLog;
-import project_team2.util.Keys;
 import weka.classifiers.Classifier;
 import weka.core.Instances;
 
@@ -22,9 +21,9 @@ import java.util.HashMap;
  */
 public class ProjectEvaluator {
 
-    public static String testUrl = Keys.DB_URL;
-    public static String testUser = Keys.DB_USERNAME;
-    public static String testPwd = Keys.DB_PWD;
+    public static String testUrl = "jdbc:mysql://imlab-ws3.snu.ac.kr/";
+    public static String testUser = "";
+    public static String testPwd = "";
 
     public static boolean AccelerometerSensorProbe = false;
     public static boolean GravitySensorProbe = false;
@@ -70,7 +69,7 @@ public class ProjectEvaluator {
 
     public static void runTest(DataSetGenerator dataSetGen, Classifier trainedCls) {
         long startTime = System.currentTimeMillis();
-        HashMap<Integer, Feature> teUsers = dataSetGen.generateDataSet(true);
+        HashMap<Integer, Feature> teUsers = dataSetGen.generateDataSet(2);
         Instances testSet = dataSetGen.transformToInstances(teUsers);
         testSet.setClassIndex(testSet.numAttributes() - 1);
 
@@ -79,13 +78,16 @@ public class ProjectEvaluator {
         int timeCost = (int) (endTime - startTime);
         int privacyCost = computePrivacyCost();
         int energyCost = computeEnergyCost();
-        double accuracy = computeAccuracy(testSet, predictedSet);
+        double RMSE = 0;
+        double accuracy = 0;
+        if(dataSetGen.labelName.equals("weight")) RMSE = computeRMSE(testSet, predictedSet);
+        else accuracy = computeAccuracy(testSet, predictedSet);
         System.out.println("test result");
-        System.out.println("teUsers.size()=" + teUsers.size());
         System.out.println("time cost : " + timeCost);
         System.out.println("privacy cost : " + privacyCost);
         System.out.println("energy cost : " + energyCost);
-        System.out.println("accuracy : " + accuracy);
+        if(dataSetGen.labelName.equals("weight")) System.out.println("RMSE : " + RMSE);
+        else System.out.println("accuracy : " + accuracy);
     }
 
     public static void tableUsed(String tableName) {
@@ -213,6 +215,15 @@ public class ProjectEvaluator {
             if (original.get(i).classValue() == predicted.get(i).classValue()) rightCnt++;
         }
         return (double) rightCnt / original.numInstances();
+    }
+
+    private static double computeRMSE(Instances original, Instances predicted) {
+        double sum = 0;
+        for (int i = 0; i < original.numInstances(); i++) {
+            sum += (original.get(i).classValue() - predicted.get(i).classValue()) * (original.get(i).classValue() - predicted.get(i).classValue());
+        }
+        sum /= original.numInstances();
+        return Math.sqrt(sum);
     }
 
     private static int computePrivacyCost() {

@@ -8,6 +8,7 @@ import weka.core.Instances;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import project_team2.util.Keys;
 
 /**
  * Created by Ethan on 2015-09-23.
@@ -27,12 +28,12 @@ public class TestMain {
 //        normalTrainingSet.setClassIndex(normalTrainingSet.numAttributes() - 1);
 
         // Conduct training with sensor data
-        SensorDataSetGenerator sensorDataSetGen = new SensorDataSetGenerator();
-        HashMap<Integer, Feature> sensorTrUsers = sensorDataSetGen.generateDataSet(false);
+        SensorDataSetGenerator sensorTrainDataSetGen = new SensorDataSetGenerator();
+        HashMap<Integer, Feature> sensorTrUsers = sensorTrainDataSetGen.generateDataSet(Keys.TRAIN_SET);
         for (Integer i : sensorTrUsers.keySet()) {
             System.out.println(i + ": " + sensorTrUsers.get(i));
         }
-        Instances sensorTrainingSet = sensorDataSetGen.transformToInstances(sensorTrUsers);
+        Instances sensorTrainingSet = sensorTrainDataSetGen.transformToInstances(sensorTrUsers);
         sensorTrainingSet.setClassIndex(sensorTrainingSet.numAttributes() - 1);
 
 
@@ -49,7 +50,7 @@ public class TestMain {
 
         ////////////////////////////////////////////////////////////////////////////////////////////////
         //////////////////////////////////    Should be included!     //////////////////////////////////
-        ProjectEvaluator.runTest(sensorDataSetGen, sensorCls);
+        ProjectEvaluator.runTest(sensorTrainDataSetGen, sensorCls);
         ////////////////////////////////////////////////////////////////////////////////////////////////
     }
 }

@@ -20,17 +20,19 @@ import java.util.Iterator;
  */
 public interface DataSetGenerator {
 
+    public static String labelName = "weight";
+
     public ArrayList<String> getTableNames();
 
     public Instances transformToInstances(HashMap<Integer, Feature> dataSet);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////    Should be included!     //////////////////////////////////
-    public HashMap<Integer, Feature> generateDataSet(boolean test);
+    public HashMap<Integer, Feature> generateDataSet(int sourceIndex);
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     public Feature generateFeature(HashMap<String, ArrayList<BasicLog>> userLogs, Double label);
 
-    public Feature generateFeature_batchProcess(ArrayList<String> tableNames, int profileId, Double label, boolean test);
+    public Feature generateFeature_batchProcess(ArrayList<String> tableNames, int profileId, Double label, int sourceIndex);
     ////////////////////////////////////////////////////////////////////////////////////////////////
 }
