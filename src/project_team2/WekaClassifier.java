@@ -218,12 +218,20 @@ public class WekaClassifier {
     public static Instances classifyDataSet(Instances dataSet, Classifier clsTrained) {
         Instances predicted = new Instances(dataSet);
         try {
+            int numClassZero = 0, numClassOne = 1, numClassTwo = 2;
             for (int i = 0; i < predicted.numInstances(); i++) {
                 double clsLabel = 0;
                 clsLabel = clsTrained.classifyInstance(predicted.instance(i));
                 String classNum = dataSet.classAttribute().value((int)clsLabel);
+                if (classNum.equals(Converters.UNDER_55)) numClassZero++;
+                else if (classNum.equals(Converters.OVER_55_UNDER_70)) numClassOne++;
+                else /*(classNum.equals(Converters.OVER_70))*/ numClassTwo++;
                 predicted.instance(i).setClassValue(Converters.classNumToWeight(classNum));
             }
+            System.out.println("WekaClassifier.classifyDataSet()/ " +
+                                "numClassZero=" + numClassZero +
+                                ", numClassOne=" + numClassOne +
+                                ", numClassTwo=" + numClassTwo);
         } catch (Exception e) {
             e.printStackTrace();
         }

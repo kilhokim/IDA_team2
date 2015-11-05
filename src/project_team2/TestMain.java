@@ -32,7 +32,7 @@ public class TestMain {
         SensorDataSetGenerator sensorDataSetGen = new SensorDataSetGenerator();
         HashMap<Integer, Feature> sensorTrUsers = sensorDataSetGen.generateDataSet(0);
         for (Integer i : sensorTrUsers.keySet()) {
-            System.out.println(i + ": " + sensorTrUsers.get(i));
+            System.out.println(i + ": " + ((SensorFeature)sensorTrUsers.get(i)).label);
         }
         Instances sensorTrainingSet = sensorDataSetGen.transformToInstances(sensorTrUsers);
         sensorTrainingSet.setClassIndex(sensorTrainingSet.numAttributes() - 1);
@@ -42,7 +42,10 @@ public class TestMain {
 
         // Fit model
 //        Classifier normalCls = Classifiers.getClassifier("Logistic");
-        Classifier sensorCls = Classifiers.getClassifier("Logistic");
+//        Classifier sensorCls = Classifiers.getClassifier("Logistic");
+//        Classifier sensorCls = Classifiers.getClassifier("SMO");
+        String options = "-K 3 -W 0 -A \"weka.core.neighboursearch.LinearNNSearch -A \\\"weka.core.EuclideanDistance -R first-last\\\"\"";
+        Classifier sensorCls = Classifiers.getClassifier("IBk", options);
 //        Classifier sensorCls = new LinearRegression();
         try {
 //            ((LinearRegression)sensorCls).setOptions(

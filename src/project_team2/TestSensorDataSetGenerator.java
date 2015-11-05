@@ -64,9 +64,9 @@ public class TestSensorDataSetGenerator extends SensorDataSetGenerator {
 //				if (profileId==3) {
 //					break;
 //				}
-				if (users.size() > 2) {
-					break;
-				}
+//				if (users.size() > 2) {
+//					break;
+//				}
         Double tempUserLabel = DBReader.readLabel(labelName, profileId, sourceIndex);
         Feature tempFeature = generateFeature_batchProcess(tableNames, profileId, tempUserLabel, sourceIndex);
         users.put(profileId, tempFeature);
@@ -98,8 +98,6 @@ public class TestSensorDataSetGenerator extends SensorDataSetGenerator {
     System.out.println("********************************************");
     System.out.println("profileId: " + profileId);
     SensorFeature feature = new SensorFeature();
-    // FIXME:
-//    feature.setLabel(Converters.weightToClassNum(label));
     feature.setLabel(String.valueOf(label));
 
     System.out.println("Starting batch processing...");
@@ -121,12 +119,13 @@ public class TestSensorDataSetGenerator extends SensorDataSetGenerator {
                   " GROUP BY expId", sourceIndex);
           while (rs.next()) {
             expIdSize = rs.getInt("expIdSize");
-            // We abandon the logs which don't fit in the single time window
             // FIXME:
-						if (expIdSize < limit)
-              numAccInstances += expIdSize / timeWindowSize;
-						else
-							numAccInstances += limit / timeWindowSize;
+//						if (expIdSize < limit)
+//              numAccInstances += expIdSize / timeWindowSize;
+//						else
+//							numAccInstances += limit / timeWindowSize;
+            // We abandon the logs which don't fit in the single time window
+            numAccInstances += expIdSize / timeWindowSize;
           }
         } catch (SQLException e) {
           e.printStackTrace();
@@ -144,10 +143,10 @@ public class TestSensorDataSetGenerator extends SensorDataSetGenerator {
                   DBReader.readLog_customized(tableName,
                           // FIXME:
                           "where profile_id = " + profileId + " and expId = " + expId
-                                  + " AND HOUR(FROM_UNIXTIME(time_stamp)) < 24"
-                                  + " AND HOUR(FROM_UNIXTIME(time_stamp)) > 7"
-//                          , sourceIndex);
-										      +	" LIMIT 0, " + limit, sourceIndex);
+                          + " AND HOUR(FROM_UNIXTIME(time_stamp)) < 24"
+                          + " AND HOUR(FROM_UNIXTIME(time_stamp)) > 7"
+                          , sourceIndex);
+//										      +	" LIMIT 0, " + limit, sourceIndex);
           expIdSize = tempChunkLogs.size();
           int indexTimeWin = 0;
 
@@ -457,6 +456,10 @@ public class TestSensorDataSetGenerator extends SensorDataSetGenerator {
             }
             else {
               String tempLabel = "" + nominalFields[i - numericFields.length].get(dataSet.get(profileId));
+              System.out.println("TestSensorDataSetGenerator.transformToInstances()");
+              if (inst % 100 == 0) {
+                System.out.println(tempLabel);
+              }
                 // FIXME: 'labels' is the only nominal Field
                 instValues[i] = Double.parseDouble(tempLabel);
 //							instValues[i] = Converters.classNumToWeight(tempLabel);

@@ -197,9 +197,9 @@ public class SensorDataSetGenerator implements DataSetGenerator {
 //				if (profileId==3) {
 //					break;
 //				}
-				if (users.size() > 2) {
-					break;
-				}
+//				if (users.size() > 2) {
+//					break;
+//				}
 				Double tempUserLabel = DBReader.readLabel(labelName, profileId, sourceIndex);
 				Feature tempFeature = generateFeature_batchProcess(tableNames, profileId, tempUserLabel, sourceIndex);
 				users.put(profileId, tempFeature);
@@ -264,6 +264,7 @@ public class SensorDataSetGenerator implements DataSetGenerator {
 		System.out.println("profileId: " + profileId);
 		SensorFeature feature = new SensorFeature();
 		feature.setLabel(Converters.weightToClassNum(label));
+		System.out.println("label: " + feature.label);
 
 		System.out.println("Starting batch processing...");
 		// Iterate over table names (probes)
@@ -284,12 +285,13 @@ public class SensorDataSetGenerator implements DataSetGenerator {
                                           " GROUP BY expId", sourceIndex);
           while (rs.next()) {
             expIdSize = rs.getInt("expIdSize");
-            // We abandon the logs which don't fit in the single time window
 						// FIXME:
-						if (expIdSize < limit)
-              numAccInstances += expIdSize / timeWindowSize;
-						else
-							numAccInstances += limit / timeWindowSize;
+//						if (expIdSize < limit)
+//              numAccInstances += expIdSize / timeWindowSize;
+//						else
+//							numAccInstances += limit / timeWindowSize;
+						// We abandon the logs which don't fit in the single time window
+						numAccInstances += expIdSize / timeWindowSize;
           }
         } catch (SQLException e) {
           e.printStackTrace();
@@ -309,8 +311,8 @@ public class SensorDataSetGenerator implements DataSetGenerator {
 									"where profile_id = " + profileId + " and expId = " + expId
                     + " AND HOUR(FROM_UNIXTIME(time_stamp)) < 24"
                     + " AND HOUR(FROM_UNIXTIME(time_stamp)) > 7"
-//											, sourceIndex);
-										+	" LIMIT 0, " + limit, sourceIndex);
+											, sourceIndex);
+//										+	" LIMIT 0, " + limit, sourceIndex);
 					expIdSize = tempChunkLogs.size();
 					int indexTimeWin = 0;
 
