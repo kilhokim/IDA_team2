@@ -6,9 +6,10 @@ package project_team2.util;
 public class Converters {
 
   public static String
-          UNDER_55 = "0",
-          OVER_55_UNDER_70 = "1",
-          OVER_70 = "2";
+          UNDER_50 = "0",
+          OVER_50_UNDER_65 = "1",
+          OVER_65_UNDER_80 = "2",
+          OVER_80 = "3";
 //          UNDER_40 = "0",
 //          OVER_40_UNDER_50 = "1",
 //          OVER_50_UNDER_60 = "2",
@@ -20,9 +21,10 @@ public class Converters {
   public static String weightToClassNum(double weight) {
 //		int classNum = -1;
     String classNum = "";
-    if (weight < 55)                      classNum = UNDER_55;
-    else if (55 <= weight && weight < 70) classNum = OVER_55_UNDER_70;
-    else  /* 70 <= weight */						  classNum = OVER_70;
+    if (weight < 50)                      classNum = UNDER_50;
+    else if (50 <= weight && weight < 65) classNum = OVER_50_UNDER_65;
+    else if (65 <= weight && weight < 80) classNum = OVER_65_UNDER_80;
+    else  /* 80 <= weight */						  classNum = OVER_80;
 //    if (weight < 40)                      classNum = UNDER_40;
 //    else if (40 <= weight && weight < 50) classNum = OVER_40_UNDER_50;
 //    else if (50 <= weight && weight < 60) classNum = OVER_50_UNDER_60;
@@ -36,9 +38,10 @@ public class Converters {
 
   public static double classNumToWeight(String classNum) {
     double weight = 0;
-    if      (classNum.equals(UNDER_55))         weight = 47.5;
-    else if (classNum.equals(OVER_55_UNDER_70)) weight = 62.5;
-    else  /* classNum.equals(Keys.OVER_70) */   weight = 77.5;
+    if      (classNum.equals(UNDER_50))         weight = 42.5;
+    else if (classNum.equals(OVER_50_UNDER_65)) weight = 57.5;
+    else if (classNum.equals(OVER_65_UNDER_80)) weight = 72.5;
+    else  /* classNum.equals(Keys.OVER_80) */   weight = 87.5;
 //    if      (classNum.equals(UNDER_40))         weight = 40;
 //    else if (classNum.equals(OVER_40_UNDER_50)) weight = 45;
 //    else if (classNum.equals(OVER_50_UNDER_60)) weight = 55;
