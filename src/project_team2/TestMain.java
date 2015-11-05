@@ -29,12 +29,12 @@ public class TestMain {
 //        normalTrainingSet.setClassIndex(normalTrainingSet.numAttributes() - 1);
 
         // Conduct training with sensor data
-        SensorDataSetGenerator sensorTrainDataSetGen = new SensorDataSetGenerator();
-        HashMap<Integer, Feature> sensorTrUsers = sensorTrainDataSetGen.generateDataSet(0);
+        SensorDataSetGenerator sensorDataSetGen = new SensorDataSetGenerator();
+        HashMap<Integer, Feature> sensorTrUsers = sensorDataSetGen.generateDataSet(0);
         for (Integer i : sensorTrUsers.keySet()) {
             System.out.println(i + ": " + sensorTrUsers.get(i));
         }
-        Instances sensorTrainingSet = sensorTrainDataSetGen.transformToInstances(sensorTrUsers);
+        Instances sensorTrainingSet = sensorDataSetGen.transformToInstances(sensorTrUsers);
         sensorTrainingSet.setClassIndex(sensorTrainingSet.numAttributes() - 1);
 
 
@@ -54,7 +54,7 @@ public class TestMain {
 
         ////////////////////////////////////////////////////////////////////////////////////////////////
         //////////////////////////////////    Should be included!     //////////////////////////////////
-        ProjectEvaluator.runTest(sensorTrainDataSetGen, sensorCls);
+        ProjectEvaluator.runTest(sensorDataSetGen, sensorCls);
         ////////////////////////////////////////////////////////////////////////////////////////////////
     }
 }
