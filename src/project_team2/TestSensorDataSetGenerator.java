@@ -297,12 +297,12 @@ public class TestSensorDataSetGenerator extends SensorDataSetGenerator {
                 else if (interval_z*7 <= log_z && log_z < interval_z*8) dist_z[7] += 1;
                 else if (interval_z*8 <= log_z && log_z < interval_z*9) dist_z[8] += 1;
                 else dist_z[9] += 1;
-                //
-                for (int d = 0; d < 10; d++) {
-                  dist_x[d] /= timeWindowSize;
-                  dist_y[d] /= timeWindowSize;
-                  dist_z[d] /= timeWindowSize;
-                }
+              }
+              //
+              for (int d = 0; d < 10; d++) {
+                dist_x[d] /= timeWindowSize;
+                dist_y[d] /= timeWindowSize;
+                dist_z[d] /= timeWindowSize;
               }
               values[valueIdx][6] = sum_diff_x/timeWindowSize; // avg_diff_x
               values[valueIdx][7] = sum_diff_y/timeWindowSize; // avg_diff_y
