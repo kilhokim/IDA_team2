@@ -3,6 +3,7 @@ package project_team2;
 import dbConnection.DBConn;
 import dbConnection.DBReader;
 import operator.ReadWriteInstances;
+import project_team2.util.Converters;
 import project_team2.util.Keys;
 import project_team2.util.Parser;
 import structure.log.BasicLog;
@@ -27,7 +28,7 @@ import java.util.*;
  */
 public class NormalDataSetGenerator implements DataSetGenerator {
 
-  String labelName = "gender";
+//  String labelName = "weight";
   ArrayList<String> tableNames;
 
   String savePath = "dataSet\\";
@@ -212,7 +213,7 @@ public class NormalDataSetGenerator implements DataSetGenerator {
 
   public Feature generateFeature(HashMap<String, ArrayList<BasicLog>> userLogs, Double label) {
     Feature feature = new NormalFeature();
-    feature.setLabel(label);
+    feature.setLabel(Converters.weightToClassNum(label));
     for (String tableName : userLogs.keySet()) {
       if (tableName.equals("AccelerometerSensorProbe")) {
 //        ArrayList<BasicLog> logs = userLogs.get(tableName);
@@ -239,7 +240,7 @@ public class NormalDataSetGenerator implements DataSetGenerator {
 
   public Feature generateFeature_batchProcess(ArrayList<String> tableNames, int profileId, Double label, int sourceIndex) {
     NormalFeature feature = new NormalFeature();
-    feature.setLabel(label);
+    feature.setLabel(Converters.weightToClassNum(label));
     System.out.println("profileId=" + profileId + ", feature=" + feature.numSmss);
 
     TableNameLoop:
@@ -738,4 +739,5 @@ public class NormalDataSetGenerator implements DataSetGenerator {
 
     return users;
   }
+
 }

@@ -64,7 +64,8 @@ public class SensorFeature implements Feature {
 	public double[] bin_dist_9_z;
 	public double[] bin_dist_10_z;
 
-	public double label;
+	// FIXME:
+	public String label;
 
 	String[] numericAtts = {
 			"avg_x", "avg_y", "avg_z", "std_x", "std_y", "std_z",
@@ -77,8 +78,8 @@ public class SensorFeature implements Feature {
 			"bin_dist_7_y", "bin_dist_8_y", "bin_dist_9_y", "bin_dist_10_y",
 			"bin_dist_1_z", "bin_dist_2_z", "bin_dist_3_z", "bin_dist_4_z",
 			"bin_dist_5_z", "bin_dist_6_z", "bin_dist_7_z", "bin_dist_8_z",
-			"bin_dist_9_z", "bin_dist_10_z", "label"};
-	String[] nominalAtts = {};   // label must be the last one!
+			"bin_dist_9_z", "bin_dist_10_z"};
+	String[] nominalAtts = {"label"};   // label must be the last one!
 
 	public Field[] getNumericAttributes(){
 		Field[] fields = null;
@@ -207,7 +208,7 @@ public class SensorFeature implements Feature {
 		}
 	}
 
-	public void setLabel(Double label){
+	public void setLabel(String label){
 		this.label = label;
 	}
 

@@ -1,5 +1,7 @@
 package project_team2;
 
+import project_team2.util.Keys;
+import project_team2.util.Converters;
 import operator.ReadWriteInstances;
 import structure.weka.Algorithm;
 import structure.weka.Experiment;
@@ -219,7 +221,8 @@ public class WekaClassifier {
             for (int i = 0; i < predicted.numInstances(); i++) {
                 double clsLabel = 0;
                 clsLabel = clsTrained.classifyInstance(predicted.instance(i));
-                predicted.instance(i).setClassValue(clsLabel);
+                String classNum = dataSet.classAttribute().value((int)clsLabel);
+                predicted.instance(i).setClassValue(Converters.classNumToWeight(classNum));
             }
         } catch (Exception e) {
             e.printStackTrace();

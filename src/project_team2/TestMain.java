@@ -36,16 +36,17 @@ public class TestMain {
         }
         Instances sensorTrainingSet = sensorDataSetGen.transformToInstances(sensorTrUsers);
         sensorTrainingSet.setClassIndex(sensorTrainingSet.numAttributes() - 1);
-
+//        for (int i = 0; i < sensorTrainingSet.size(); i++) {
+//            System.out.println(sensorTrainingSet.get(i).classValue());
+//        }
 
         // Fit model
 //        Classifier normalCls = Classifiers.getClassifier("Logistic");
-//        Classifier sensorCls = Classifiers.getClassifier("Logistic");
-        // Classifier cls = Classifiers.getClassifier("NaiveBayes");
-        Classifier sensorCls = new LinearRegression();
+        Classifier sensorCls = Classifiers.getClassifier("Logistic");
+//        Classifier sensorCls = new LinearRegression();
         try {
-            ((LinearRegression)sensorCls).setOptions(
-                    weka.core.Utils.splitOptions("-S 0 -R 1.0E-8 -num-decimal-places 4"));
+//            ((LinearRegression)sensorCls).setOptions(
+//                    weka.core.Utils.splitOptions("-S 0 -R 1.0E-8 -num-decimal-places 4"));
 //            normalCls.buildClassifier(normalTrainingSet);
             sensorCls.buildClassifier(sensorTrainingSet);
         } catch (Exception e) {
@@ -54,7 +55,10 @@ public class TestMain {
 
         ////////////////////////////////////////////////////////////////////////////////////////////////
         //////////////////////////////////    Should be included!     //////////////////////////////////
-        ProjectEvaluator.runTest(sensorDataSetGen, sensorCls);
+        // IMPORTANT: A new SensorDataSetGen which generates real 'weight' labels
+        //            instead of class index of weight groups
+        DataSetGenerator testSensorDataSetGen = new TestSensorDataSetGenerator();
+        ProjectEvaluator.runTest(testSensorDataSetGen, sensorCls);
         ////////////////////////////////////////////////////////////////////////////////////////////////
     }
 }

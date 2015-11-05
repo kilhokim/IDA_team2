@@ -4,6 +4,7 @@ import dbConnection.DBConn;
 import dbConnection.DBReader;
 import operator.ReadWriteInstances;
 import project_team2.util.Keys;
+import project_team2.util.Converters;
 import structure.log.BasicLog;
 import structure.log.motion.AccelerometerLog;
 import structure.log.motion.GyroscopeLog;
@@ -38,52 +39,52 @@ public class SensorDataSetGenerator implements DataSetGenerator {
 	// assign true value to the variables below, if you want to use the corresponding data tables.
 
 	// motion
-	private boolean AccelerometerSensorProbe = true;
-	private boolean GravitySensorProbe = false;
-	private boolean LinearAccelerationSensorProbe = false;
-	private boolean GyroscopeSensorProbe = false;
-	private boolean OrientationSensorProbe = false;
-	private boolean RotationVectorSensorProbe = false;
+	protected boolean AccelerometerSensorProbe = true;
+	protected boolean GravitySensorProbe = false;
+	protected boolean LinearAccelerationSensorProbe = false;
+	protected boolean GyroscopeSensorProbe = false;
+	protected boolean OrientationSensorProbe = false;
+	protected boolean RotationVectorSensorProbe = false;
 
 	// positioning
-	private boolean BluetoothProbe = false;
-	private boolean WifiProbe = false;
-	private boolean CellTowerProbe = false;
-	private boolean LocationProbe = false;
-	private boolean SimpleLocationProbe = false;
+	protected boolean BluetoothProbe = false;
+	protected boolean WifiProbe = false;
+	protected boolean CellTowerProbe = false;
+	protected boolean LocationProbe = false;
+	protected boolean SimpleLocationProbe = false;
 
 	// environment
-	private boolean MagneticFieldSensorProbe = false;
-	private boolean ProximitySensorProbe = false;
-	private boolean LightSensorProbe = false;
-	private boolean PressureSensorProbe = false;
-	private boolean AudioFeaturesProbe = false;
+	protected boolean MagneticFieldSensorProbe = false;
+	protected boolean ProximitySensorProbe = false;
+	protected boolean LightSensorProbe = false;
+	protected boolean PressureSensorProbe = false;
+	protected boolean AudioFeaturesProbe = false;
 
 	// social
-	private boolean CallLogProbe = false;
-	private boolean SmsProbe = false;
-	private boolean ContactProbe = false;
+	protected boolean CallLogProbe = false;
+	protected boolean SmsProbe = false;
+	protected boolean ContactProbe = false;
 
 	// device interaction
-	private boolean BrowserBookmarksProbe = false;
-	private boolean BrowserSearchesProbe = false;
-	private boolean ImageMediaProbe = false;
-	private boolean VideoMediaProbe = false;
-	private boolean AudioMediaProbe = false;
-	private boolean RunningApplicationsProbe = false;
-	private boolean ApplicationsProbe = false;
-	private boolean ScreenProbe = false;
-	private boolean AccountsProbe = false;
-	private boolean ProcessStatisticsProbe = false;
-	private boolean ServicesProbe = false;
+	protected boolean BrowserBookmarksProbe = false;
+	protected boolean BrowserSearchesProbe = false;
+	protected boolean ImageMediaProbe = false;
+	protected boolean VideoMediaProbe = false;
+	protected boolean AudioMediaProbe = false;
+	protected boolean RunningApplicationsProbe = false;
+	protected boolean ApplicationsProbe = false;
+	protected boolean ScreenProbe = false;
+	protected boolean AccountsProbe = false;
+	protected boolean ProcessStatisticsProbe = false;
+	protected boolean ServicesProbe = false;
 
 	// device
-	private boolean AndroidInfoProbe = false;
-	private boolean BatteryProbe = false;
-	private boolean HardwareInfoProbe = false;
-	private boolean NetworkSettingsProbe = false;
-	private boolean SystemSettingsProbe = false;
-	private boolean TelephonyProbe = false;
+	protected boolean AndroidInfoProbe = false;
+	protected boolean BatteryProbe = false;
+	protected boolean HardwareInfoProbe = false;
+	protected boolean NetworkSettingsProbe = false;
+	protected boolean SystemSettingsProbe = false;
+	protected boolean TelephonyProbe = false;
 
 	// time window size
 	static int timeWindowSize = 500;
@@ -152,7 +153,7 @@ public class SensorDataSetGenerator implements DataSetGenerator {
 			attrList.add(new Attribute(nominalField.getName(), labels));
 		}
 
-		// insts[profileId * exp]
+		// insts[profileId * valueIdx]
 		Instances insts = new Instances("example_dataSet", attrList, 0);
 		for (int profileId : dataSet.keySet()) {
 			SensorFeature currFeature = (SensorFeature)dataSet.get(profileId);
@@ -163,8 +164,9 @@ public class SensorDataSetGenerator implements DataSetGenerator {
 				for (int i = 0; i < instValues.length; i++) {
 					try {
 						if (i < numericFields.length){
-							if (i == numericFields.length-1) instValues[i] = (double) numericFields[i].getDouble(dataSet.get(profileId));
-							else instValues[i] = ((double[]) numericFields[i].get(dataSet.get(profileId)))[inst];
+//							if (i == numericFields.length-1) instValues[i] = (double) numericFields[i].getDouble(dataSet.get(profileId));
+//							else
+								instValues[i] = ((double[]) numericFields[i].get(dataSet.get(profileId)))[inst];
 						}
 						else {
 							String tempLabel = "" + nominalFields[i - numericFields.length].get(dataSet.get(profileId));
@@ -191,10 +193,9 @@ public class SensorDataSetGenerator implements DataSetGenerator {
 //				if (profileId==3) {
 //					break;
 //				}
-				if (users.size() > 2) {
-					break;
-				}
-				//				if (profileId < 4) continue;
+//				if (users.size() > 1) {
+//					break;
+//				}
 				Double tempUserLabel = DBReader.readLabel(labelName, profileId, sourceIndex);
 				Feature tempFeature = generateFeature_batchProcess(tableNames, profileId, tempUserLabel, sourceIndex);
 				users.put(profileId, tempFeature);
@@ -228,7 +229,8 @@ public class SensorDataSetGenerator implements DataSetGenerator {
 	 */
 	public Feature generateFeature(HashMap<String, ArrayList<BasicLog>> userLogs, Double label) {
 		Feature feature = new SensorFeature();
-		feature.setLabel(label);
+		feature.setLabel(Converters.weightToClassNum(label));
+//		feature.setLabel(label);
 		for (String tableName : userLogs.keySet()) {
 			if (tableName.equals("AccelerometerSensorProbe")) {
 				//        ArrayList<BasicLog> logs = userLogs.get(tableName);
@@ -257,7 +259,8 @@ public class SensorDataSetGenerator implements DataSetGenerator {
 		System.out.println("********************************************");
 		System.out.println("profileId: " + profileId);
 		SensorFeature feature = new SensorFeature();
-		feature.setLabel(label);
+		// FIXME:
+		feature.setLabel(Converters.weightToClassNum(label));
 
 		System.out.println("Starting batch processing...");
 		// Iterate over table names (probes)
@@ -277,10 +280,10 @@ public class SensorDataSetGenerator implements DataSetGenerator {
             expIdSize = rs.getInt("expIdSize");
             // We abandon the logs which don't fit in the single time window
 						// FIXME:
-						if (expIdSize < 500)
+//						if (expIdSize < 500)
               numAccInstances += expIdSize / timeWindowSize;
-						else
-							numAccInstances += 500 / timeWindowSize;
+//						else
+//							numAccInstances += 500 / timeWindowSize;
           }
         } catch (SQLException e) {
           e.printStackTrace();
@@ -297,8 +300,9 @@ public class SensorDataSetGenerator implements DataSetGenerator {
 					ArrayList<BasicLog> tempChunkLogs =
 							DBReader.readLog_customized(tableName,
 									// FIXME:
-									"where profile_id = " + profileId + " and expId = " + expId +
-											" LIMIT 0, 500", sourceIndex);
+									"where profile_id = " + profileId + " and expId = " + expId
+											, sourceIndex);
+//										+	" LIMIT 0, 500", sourceIndex);
 					expIdSize = tempChunkLogs.size();
 					int indexTimeWin = 0;
 
