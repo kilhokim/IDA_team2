@@ -92,6 +92,9 @@ public class SensorDataSetGenerator implements DataSetGenerator {
 	// peak threshold delta 
 	static double deltaThresh = 0.1;
 
+	// FIXME: limit original number of instances in each expId's
+	static int limit = 1000;
+
 	public SensorDataSetGenerator() {
 		tableNames = getTableNames();
 	}
@@ -108,7 +111,8 @@ public class SensorDataSetGenerator implements DataSetGenerator {
 					!field.getName().equals("extension") &&
 					!field.getName().equals("batchProcess") &&
 					!field.getName().equals("timeWindowSize") &&
-					!field.getName().equals("deltaThresh")
+					!field.getName().equals("deltaThresh") &&
+          !field.getName().equals("limit")
 					) {
 				try {
 					if ((boolean) field.get(this)) tableNames.add(field.getName());
@@ -193,9 +197,9 @@ public class SensorDataSetGenerator implements DataSetGenerator {
 //				if (profileId==3) {
 //					break;
 //				}
-//				if (users.size() > 1) {
-//					break;
-//				}
+				if (users.size() > 2) {
+					break;
+				}
 				Double tempUserLabel = DBReader.readLabel(labelName, profileId, sourceIndex);
 				Feature tempFeature = generateFeature_batchProcess(tableNames, profileId, tempUserLabel, sourceIndex);
 				users.put(profileId, tempFeature);
@@ -259,7 +263,6 @@ public class SensorDataSetGenerator implements DataSetGenerator {
 		System.out.println("********************************************");
 		System.out.println("profileId: " + profileId);
 		SensorFeature feature = new SensorFeature();
-		// FIXME:
 		feature.setLabel(Converters.weightToClassNum(label));
 
 		System.out.println("Starting batch processing...");
@@ -275,15 +278,18 @@ public class SensorDataSetGenerator implements DataSetGenerator {
           ResultSet rs = DBConn.execQuery("SELECT expId, COUNT(*) AS expIdSize" +
                                           " FROM " + tableName +
                                           " WHERE profile_id=" + profileId +
+																					// FIXME:
+																					" AND HOUR(FROM_UNIXTIME(time_stamp)) < 24" +
+																					" AND HOUR(FROM_UNIXTIME(time_stamp)) > 7" +
                                           " GROUP BY expId", sourceIndex);
           while (rs.next()) {
             expIdSize = rs.getInt("expIdSize");
             // We abandon the logs which don't fit in the single time window
 						// FIXME:
-//						if (expIdSize < 500)
+						if (expIdSize < limit)
               numAccInstances += expIdSize / timeWindowSize;
-//						else
-//							numAccInstances += 500 / timeWindowSize;
+						else
+							numAccInstances += limit / timeWindowSize;
           }
         } catch (SQLException e) {
           e.printStackTrace();
@@ -301,8 +307,10 @@ public class SensorDataSetGenerator implements DataSetGenerator {
 							DBReader.readLog_customized(tableName,
 									// FIXME:
 									"where profile_id = " + profileId + " and expId = " + expId
-											, sourceIndex);
-//										+	" LIMIT 0, 500", sourceIndex);
+                    + " AND HOUR(FROM_UNIXTIME(time_stamp)) < 24"
+                    + " AND HOUR(FROM_UNIXTIME(time_stamp)) > 7"
+//											, sourceIndex);
+										+	" LIMIT 0, " + limit, sourceIndex);
 					expIdSize = tempChunkLogs.size();
 					int indexTimeWin = 0;
 
