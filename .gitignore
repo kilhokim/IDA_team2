@@ -49,3 +49,6 @@ dataSet/
 *.arff
 *.csv
 /bin
+
+src/dbConnection/DBConn.java
+src/project_team2/util/Keys.java
