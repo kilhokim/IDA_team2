@@ -48,3 +48,5 @@ crashlytics-build.properties
 dataSet/
 *.arff
 *.csv
+src/dbConnection/DBConn.java
+src/project_team2/util/Keys.java
